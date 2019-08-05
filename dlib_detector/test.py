@@ -25,7 +25,7 @@ def processFile(path, detector):
 
 
 def main():
-    fpath = "C:/Projects/data/coins/frames"
+    fpath = r"C:\Projects\data\coins\frames"
     accordanceDict = dict()
 
     for coinClassName in os.listdir(fpath):
