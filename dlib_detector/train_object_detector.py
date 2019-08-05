@@ -89,8 +89,7 @@ for folder in os.listdir(imgs_folder):
         # average precision.
         print("")  # Print blank line to create gap from previous output
         print("Training accuracy: {}".format(
-            dlib.test_simple_object_detector(training_xml_path, f"det"
-            f"ector_{folder}_{f}.svm")))
+            dlib.test_simple_object_detector(training_xml_path, f"detector_{folder}_{f}.svm")))
         # However, to get an idea if it really worked without overfitting we need to
         # run it on images it wasn't trained on.  The next line does this.  Happily, we
         # see that the object detector works perfectly on the testing images.
