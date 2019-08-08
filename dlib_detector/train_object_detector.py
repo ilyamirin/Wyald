@@ -45,16 +45,8 @@ if len(sys.argv) != 2:
 
     exit()
 imgs_folder = sys.argv[1]
-#faces_folder = sys.argv[1]
 
-
-# Now let's do the training.  The train_simple_object_detector() function has a
-# bunch of options, all of which come with reasonable default values.  The next
-# few lines goes over some of these options.
 options = dlib.simple_object_detector_training_options()
-# Since faces are left/right symmetric we can tell the trainer to train a
-# symmetric detector.  This helps it get the most value out of the training
-# data.
 options.add_left_right_image_flips = True
 # The trainer is a kind of support vector machine and therefore has the usual
 # SVM C parameter.  In general, a bigger C encourages it to fit the training
@@ -69,9 +61,9 @@ options.be_verbose = True
 
 for folder in os.listdir(imgs_folder):
     for f in os.listdir(os.path.join(imgs_folder, folder)):
-        dir = os.path.join(imgs_folder, folder, f)
+        dir = os.path.join(imgs_folder, folder)
         training_xml_path = os.path.join(dir, "training.xml")
-        testing_xml_path = os.path.join(dir, "testing.xml")
+        #testing_xml_path = os.path.join(dir, "testing.xml")
         # This function does the actual training.  It will save the final detector to
         # detector.svm.  The input is an XML file that lists the images in the training
         # dataset and also contains the positions of the face boxes.  To create your
@@ -80,7 +72,7 @@ for folder in os.listdir(imgs_folder):
         # images with boxes.  To see how to use it read the tools/imglab/README.txt
         # file.  But for this example, we just use the training.xml file included with
         # dlib.
-        dlib.train_simple_object_detector(training_xml_path, f"detector_{folder}_{f}.svm", options)
+        dlib.train_simple_object_detector(training_xml_path, f"detector_{folder}.svm", options)
 
 
 
@@ -89,7 +81,7 @@ for folder in os.listdir(imgs_folder):
         # average precision.
         print("")  # Print blank line to create gap from previous output
         print("Training accuracy: {}".format(
-            dlib.test_simple_object_detector(training_xml_path, f"detector_{folder}_{f}.svm")))
+            dlib.test_simple_object_detector(training_xml_path, f"detector_{folder}.svm")))
         # However, to get an idea if it really worked without overfitting we need to
         # run it on images it wasn't trained on.  The next line does this.  Happily, we
         # see that the object detector works perfectly on the testing images.

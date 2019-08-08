@@ -39,68 +39,65 @@ def permutate(arr, saveOrder=False, seedValue=1234):
     return arr
 
 
-def prepareAll(cdir, idx):
+def prepareAll(picturesFolder, idx):
     picturesDet = []
     picturesCls = []
 
-    for j in range(1, 4):
-        picturesFolder = os.path.join(cdir, f"{j}")
+    marks = json.load(open(os.path.join(picturesFolder, "mark.json"), "r"))
+    pictures = [os.path.join(picturesFolder, name) for name in os.listdir(picturesFolder) if name.endswith(".png")]
 
-        marks = json.load(open(os.path.join(picturesFolder, "mark.json"), "r"))
-        pictures = [os.path.join(picturesFolder, name) for name in os.listdir(picturesFolder) if name.endswith(".png")]
+    classifierPicturesFolder = os.path.join(picturesFolder, "cut")
+    if os.path.exists(classifierPicturesFolder):
+        shutil.rmtree(classifierPicturesFolder)
+    os.makedirs(classifierPicturesFolder, exist_ok=True)
 
-        classifierPicturesFolder = os.path.join(picturesFolder, "cut")
-        if os.path.exists(classifierPicturesFolder):
-            shutil.rmtree(classifierPicturesFolder)
-        os.makedirs(classifierPicturesFolder, exist_ok=True)
+    detectorFiles = []
+    classifierFiles = []
+    for i, imagePath in enumerate(pictures):
+        i += idx
+        #imageName = os.path.basename(imagePath)
+        print(imagePath)
+        if not imagePath in marks or not marks[imagePath]:
+            continue
 
-        detectorFiles = []
-        classifierFiles = []
-        for i, imagePath in enumerate(pictures):
-            i += idx
-            #imageName = os.path.basename(imagePath)
-            print(imagePath)
-            if not imagePath in marks or not marks[imagePath]:
-                continue
+        categoryName = marks[imagePath]["category"]
+        y1, x1, y2, x2 = marks[imagePath]["coords"]
+        categoryIdx = category[categoryName]
 
-            categoryName = marks[imagePath]["category"]
-            y1, x1, y2, x2 = marks[imagePath]["coords"]
-            categoryIdx = category[categoryName]
+        image = cv2.imread(imagePath, 1)
+        height, width = image.shape[:2]
+        detectorFiles.append(imagePath)
 
-            image = cv2.imread(imagePath, 1)
-            height, width = image.shape[:2]
-            detectorFiles.append(imagePath)
+        y1 = max(0, y1)
+        y2 = min(height, y2)
+        x1 = max(0, x1)
+        x2 = min(width, x2)
 
-            y1 = max(0, y1)
-            y2 = min(height, y2)
-            x1 = max(0, x1)
-            x2 = min(width, x2)
+        bbox = image[y1 + 10:y2 - 10, x1 - 10:x2 + 10, :]
 
-            bbox = image[y1 + 10:y2 - 10, x1 - 10:x2 + 10, :]
+        yc = ((y2 + y1) // 2) / height
+        xc = ((x2 + x1) // 2) / width
+        h = (y2 - y1) / height
+        w = (x2 - x1) / width
 
-            yc = ((y2 + y1) // 2) / height
-            xc = ((x2 + x1) // 2) / width
-            h = (y2 - y1) / height
-            w = (x2 - x1) / width
+        imageString = f"{categoryIdx} {xc} {yc} {w} {h}\n"
 
-            imageString = f"{categoryIdx} {xc} {yc} {w} {h}\n"
+        with open(imagePath.replace(".png", ".txt"), "w") as file:
+            file.write(imageString)
 
-            with open(imagePath.replace(".png", ".txt"), "w") as file:
-                file.write(imageString)
+        fnameNew = categoryNames[categoryName]
+        # fnameNew = imageName.split("_")[:-2]
+        # fnameNew = " ".join(fnameNew)
 
-            fnameNew = categoryNames[categoryName]
-            # fnameNew = imageName.split("_")[:-2]
-            # fnameNew = " ".join(fnameNew)
+        newName = f"{i}_{fnameNew}.png"
 
-            newName = f"{i}_{fnameNew}.png"
+        if not os.path.exists(os.path.join(classifierPicturesFolder, newName)):
+            cv2.imwrite(os.path.join(classifierPicturesFolder, newName), bbox)
 
-            if not os.path.exists(os.path.join(classifierPicturesFolder, newName)):
-                cv2.imwrite(os.path.join(classifierPicturesFolder, newName), bbox)
+        classifierFiles.append(os.path.join(classifierPicturesFolder, newName))
 
-            classifierFiles.append(os.path.join(classifierPicturesFolder, newName))
-
-        picturesDet.extend(permutate([name + "\n" for name in detectorFiles]))
-        picturesCls.extend(permutate([name + "\n" for name in classifierFiles]))
+    picturesDet.extend(permutate([name + "\n" for name in detectorFiles]))
+    picturesCls.extend(permutate([name + "\n" for name in classifierFiles]))
 
     picturesDet = permutate(picturesDet)
     picturesCls = permutate(picturesCls)
@@ -152,8 +149,7 @@ def createLabels(trainFile, json_):
         if imageMarks:
             clsName = imageMarks["name"]
             coords = imageMarks["coords"]
-
-            clsIdx = category[clsName.replace("_", "-")]
+            #clsIdx = category[clsName.replace("_", "-")]
 
             image = cv2.imread(file)
             if image is None:
@@ -161,18 +157,16 @@ def createLabels(trainFile, json_):
 
 
 def main():
-    coinsRootDir = r"C:\Projects\data\coins\frames"
-    coinsDirs = []
-
-    for cdir in os.listdir(coinsRootDir):
-        coinsDirs.append(os.path.join(coinsRootDir, cdir))
+    coinsRootDir = r"C:\Projects\coins\data\coins\frames\imgs"
 
     fileListD = []
     fileListC = []
 
     idx = 0
-    for cdir in coinsDirs:
-        curDetList, curCategoryList = prepareAll(cdir, idx)
+    for cdir in os.listdir(coinsRootDir):
+        if cdir == "1-ruble-avers-v1":
+            continue
+        curDetList, curCategoryList = prepareAll(os.path.join(coinsRootDir, cdir), idx)
 
         idx += len(curCategoryList) + 1
 

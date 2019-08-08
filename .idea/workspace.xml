@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="da1d752f-5aec-4178-9255-f24619086606" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/CoinsRecognition.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CoinsRecognition.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers_1.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers_2.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers_3.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers_1.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers_2.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers_3.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers_1.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers_2.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers_3.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers_1.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers_2.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers_3.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/train_object_detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/train_object_detector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framing.py" beforeDir="false" afterPath="$PROJECT_DIR$/framing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tracking.py" beforeDir="false" afterPath="$PROJECT_DIR$/tracking.py" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1P0G9seMdw5EUWg9U5LpxfzY2hJ" />
+  <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/main.py" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Projects\coins\coins_recognition\dlib_detector\detector_v2" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.main">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python">
+      <module name="CoinsRecognition" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Program Files (x86)\Python\Python37-32\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python">
+      <module name="CoinsRecognition" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Program Files\Python\Python36\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dlib_detector" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dlib_detector/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="tracking" type="PythonConfigurationType" factoryName="Python">
+      <module name="CoinsRecognition" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Program Files\Python\Python36\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tracking.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.main" />
+      <item itemvalue="Python.test" />
+      <item itemvalue="Python.tracking" />
+    </list>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="da1d752f-5aec-4178-9255-f24619086606" name="Default Changelist" comment="" />
+      <created>1565003451997</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1565003451997</updated>
+      <workItem from="1565003453223" duration="1917000" />
+      <workItem from="1565086296002" duration="1697000" />
+      <workItem from="1565089292925" duration="1220000" />
+      <workItem from="1565091832485" duration="19313000" />
+      <workItem from="1565119476510" duration="1673000" />
+      <workItem from="1565148750661" duration="11831000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/coins_recognition$main.coverage" NAME="main Coverage Results" MODIFIED="1565163524056" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/coins_recognition$test.coverage" NAME="test Coverage Results" MODIFIED="1565157815830" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dlib_detector" />
+    <SUITE FILE_PATH="coverage/coins_recognition$tracking.coverage" NAME="tracking Coverage Results" MODIFIED="1565158004145" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+</project>
