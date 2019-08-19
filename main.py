@@ -11,14 +11,18 @@ category = {
     "1-ruble-avers": 0,
     "2-rubles-avers": 1,
     "5-rubles-avers": 2,
-    "10-rubles-avers": 3
+    "10-rubles-avers": 3,
+    "astronomiya-2009": 4,
+    "bandikut-2011": 5
 }
 
 categoryNames = {
     "1-ruble-avers": "one ruble avers",
     "2-rubles-avers": "two rubles avers",
     "5-rubles-avers": "five rubles avers",
-    "10-rubles-avers": "ten rubles avers"
+    "10-rubles-avers": "ten rubles avers",
+    "astronomiya-2009": "astronomiya 2009",
+    "bandikut-2011": "bandikut 2011"
 }
 
 
@@ -53,14 +57,16 @@ def prepareAll(picturesFolder, idx):
 
     detectorFiles = []
     classifierFiles = []
+
     for i, imagePath in enumerate(pictures):
         i += idx
-        #imageName = os.path.basename(imagePath)
-        print(imagePath)
+        #imageName os.path.basename(imagePath)
+        print(f"{imagePath}")
         if not imagePath in marks or not marks[imagePath]:
             continue
 
         categoryName = marks[imagePath]["category"]
+        categoryName.replace("_", "-")
         y1, x1, y2, x2 = marks[imagePath]["coords"]
         categoryIdx = category[categoryName]
 
@@ -88,7 +94,6 @@ def prepareAll(picturesFolder, idx):
         fnameNew = categoryNames[categoryName]
         # fnameNew = imageName.split("_")[:-2]
         # fnameNew = " ".join(fnameNew)
-
         newName = f"{i}_{fnameNew}.png"
 
         if not os.path.exists(os.path.join(classifierPicturesFolder, newName)):
@@ -136,41 +141,47 @@ def prepareAll(picturesFolder, idx):
 #     return permutate(flist), idx + i
 
 
-def createLabels(trainFile, json_):
-    marks = json.load(open(json_, "r"))
-
-    with open(trainFile, "r") as file:
-        filePaths = [path.strip() for path in file.readlines()]
-
-    for file in filePaths:
-        name = os.path.basename(file)
-
-        imageMarks = marks.get(name, None)
-        if imageMarks:
-            clsName = imageMarks["name"]
-            coords = imageMarks["coords"]
-            #clsIdx = category[clsName.replace("_", "-")]
-
-            image = cv2.imread(file)
-            if image is None:
-                continue
-
+# def createLabels(trainFile, json_):
+#     marks = json.load(open(json_, "r"))
+#
+#     with open(trainFile, "r") as file:
+#         filePaths = [path.strip() for path in file.readlines()]
+#
+#     for file in filePaths:
+#         name = os.path.basename(file)
+#
+#         imageMarks = marks.get(name, None)
+#         if imageMarks:
+#             clsName = imageMarks["name"]
+#             coords = imageMarks["coords"]
+#             clsIdx = category[clsName.replace("_", "-")]
+#
+#             image = cv2.imread(file)
+#             if image is None:
+#                 continue
 
 def main():
-    coinsRootDir = r"C:\Projects\coins\data\coins\frames\imgs"
+    rootDir = r'C:\Projects\data\sber'
+    frameDir = os.path.join(rootDir, 'frames')
 
     fileListD = []
     fileListC = []
 
     idx = 0
-    for cdir in os.listdir(coinsRootDir):
-        if cdir == "1-ruble-avers-v1":
-            continue
-        curDetList, curCategoryList = prepareAll(os.path.join(coinsRootDir, cdir), idx)
 
+    for cdir in os.listdir(frameDir):
+        curDetList, curCategoryList = prepareAll(os.path.join(frameDir, cdir), idx)
         idx += len(curCategoryList) + 1
-
         fileListC.extend(curCategoryList)
+        fileListD.extend(curDetList)
+
+    # C:\\Projects\\coins\\data\\coins\\frames\\imgs\
+    frameRublesDir = r"C:\Projects\coins\data\coins\frames\imgs"
+    for cdir in os.listdir(frameRublesDir):
+        curDetList, curCategoryList = prepareAll(os.path.join(frameRublesDir, cdir), idx)
+        idx += len(curCategoryList) + 1
+        fileListC.extend(curCategoryList)
+
         fileListD.extend(curDetList)
 
     fileListC = permutate(fileListC)
