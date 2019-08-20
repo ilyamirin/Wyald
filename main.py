@@ -8,21 +8,49 @@ import numpy as np
 from random import shuffle, seed
 
 category = {
-    "1-ruble-avers": 0,
-    "2-rubles-avers": 1,
-    "5-rubles-avers": 2,
-    "10-rubles-avers": 3,
-    "astronomiya-2009": 4,
-    "bandikut-2011": 5
+   "Akhaltekinskiy-kon-2011": 0,
+   "astronomiya_2009": 1,
+   "bandikut_2011": 2,
+   "Barselona-2014": 3,
+   "bashnya_2010": 4,
+   "Bekenbaue-2012": 5,
+   "BELYY-MEDVED-2012": 6,
+   "belyye_nochi_2013": 7,
+   "buki-2013-avers": 8,
+   "Dinozavry-morskiye-2013": 9,
+   "dumskaya_bashnya_2010": 10,
+   "kavaleriya_1812_2012": 11,
+   "klyuch_k_serdtsu_2017": 12,
+   "koala_s_opala_2012": 13,
+   "koleso_fortuny_2018": 14,
+   "lastochkino_gnezdo_2012": 15,
+   "livadiyskiy_dvorets_2013": 16,
+   "london_2014": 17,
+   "lyubov_dragotsenna_2018": 18,
+   "matrona_moskvina_2017": 19
 }
 
 categoryNames = {
-    "1-ruble-avers": "one ruble avers",
-    "2-rubles-avers": "two rubles avers",
-    "5-rubles-avers": "five rubles avers",
-    "10-rubles-avers": "ten rubles avers",
-    "astronomiya-2009": "astronomiya 2009",
-    "bandikut-2011": "bandikut 2011"
+   "Akhaltekinskiy-kon-2011": "Akhaltekinskiy-kon-2011",
+   "astronomiya_2009": "astronomiya_2009",
+   "bandikut_2011": "bandikut_2011",
+   "Barselona-2014": "Barselona-2014",
+   "bashnya_2010": "bashnya_2010",
+   "Bekenbaue-2012": "Bekenbaue-2012",
+   "BELYY-MEDVED-2012": "BELYY-MEDVED-2012",
+   "belyye_nochi_2013": "belyye_nochi_2013",
+   "buki-2013-avers": "buki-2013-avers",
+   "Dinozavry-morskiye-2013": "Dinozavry-morskiye-2013",
+   "dumskaya_bashnya_2010": "dumskaya_bashnya_2010",
+   "kavaleriya_1812_2012": "kavaleriya_1812_2012",
+   "klyuch_k_serdtsu_2017": "klyuch_k_serdtsu_2017",
+   "koala_s_opala_2012": "koala_s_opala_2012",
+   "koleso_fortuny_2018": "koleso_fortuny_2018",
+   "lastochkino_gnezdo_2012": "lastochkino_gnezdo_2012",
+   "livadiyskiy_dvorets_2013": "livadiyskiy_dvorets_2013",
+   "london_2014": "london_2014",
+   "lyubov_dragotsenna_2018": "lyubov_dragotsenna_2018",
+   "matrona_moskvina_2017": "matrona_moskvina_2017"
 }
 
 
@@ -50,10 +78,11 @@ def prepareAll(picturesFolder, idx):
     marks = json.load(open(os.path.join(picturesFolder, "mark.json"), "r"))
     pictures = [os.path.join(picturesFolder, name) for name in os.listdir(picturesFolder) if name.endswith(".png")]
 
-    classifierPicturesFolder = os.path.join(picturesFolder, "cut")
-    if os.path.exists(classifierPicturesFolder):
-        shutil.rmtree(classifierPicturesFolder)
-    os.makedirs(classifierPicturesFolder, exist_ok=True)
+    # classifierPicturesFolder = os.path.join(picturesFolder, "cut")
+    # if os.path.exists(classifierPicturesFolder):
+        #shutil.rmtree(classifierPicturesFolder)
+
+    #os.makedirs(classifierPicturesFolder, exist_ok=True)
 
     detectorFiles = []
     classifierFiles = []
@@ -66,7 +95,6 @@ def prepareAll(picturesFolder, idx):
             continue
 
         categoryName = marks[imagePath]["category"]
-        categoryName.replace("_", "-")
         y1, x1, y2, x2 = marks[imagePath]["coords"]
         categoryIdx = category[categoryName]
 
@@ -92,20 +120,21 @@ def prepareAll(picturesFolder, idx):
             file.write(imageString)
 
         fnameNew = categoryNames[categoryName]
+        fnameNew = fnameNew.replace("_", "-")
         # fnameNew = imageName.split("_")[:-2]
         # fnameNew = " ".join(fnameNew)
         newName = f"{i}_{fnameNew}.png"
 
-        if not os.path.exists(os.path.join(classifierPicturesFolder, newName)):
-            cv2.imwrite(os.path.join(classifierPicturesFolder, newName), bbox)
+        # if not os.path.exists(os.path.join(classifierPicturesFolder, newName)):
+        #     cv2.imwrite(os.path.join(classifierPicturesFolder, newName), bbox)
 
-        classifierFiles.append(os.path.join(classifierPicturesFolder, newName))
+        #classifierFiles.append(os.path.join(classifierPicturesFolder, newName))
 
     picturesDet.extend(permutate([name + "\n" for name in detectorFiles]))
-    picturesCls.extend(permutate([name + "\n" for name in classifierFiles]))
+    # picturesCls.extend(permutate([name + "\n" for name in classifierFiles]))
 
     picturesDet = permutate(picturesDet)
-    picturesCls = permutate(picturesCls)
+    # picturesCls = permutate(picturesCls)
 
     return picturesDet, picturesCls
 
@@ -161,7 +190,7 @@ def prepareAll(picturesFolder, idx):
 #                 continue
 
 def main():
-    rootDir = r'C:\Projects\data\sber'
+    rootDir = r'C:\Projects\data\coins'
     frameDir = os.path.join(rootDir, 'frames')
 
     fileListD = []
@@ -172,23 +201,23 @@ def main():
     for cdir in os.listdir(frameDir):
         curDetList, curCategoryList = prepareAll(os.path.join(frameDir, cdir), idx)
         idx += len(curCategoryList) + 1
-        fileListC.extend(curCategoryList)
+        # fileListC.extend(curCategoryList)
         fileListD.extend(curDetList)
 
     # C:\\Projects\\coins\\data\\coins\\frames\\imgs\
-    frameRublesDir = r"C:\Projects\coins\data\coins\frames\imgs"
-    for cdir in os.listdir(frameRublesDir):
-        curDetList, curCategoryList = prepareAll(os.path.join(frameRublesDir, cdir), idx)
-        idx += len(curCategoryList) + 1
-        fileListC.extend(curCategoryList)
+    # frameRublesDir = r"C:\Projects\coins\data\coins\frames\imgs"
+    # for cdir in os.listdir(frameRublesDir):
+    #     curDetList, curCategoryList = prepareAll(os.path.join(frameRublesDir, cdir), idx)
+    #     idx += len(curCategoryList) + 1
+    #     fileListC.extend(curCategoryList)
+    #
+    #     fileListD.extend(curDetList)
 
-        fileListD.extend(curDetList)
-
-    fileListC = permutate(fileListC)
+    # fileListC = permutate(fileListC)
     fileListD = permutate(fileListD)
 
-    with open("trainC.txt", "w") as file:
-        file.writelines(fileListC)
+    # with open("trainC.txt", "w") as file:
+    #     file.writelines(fileListC)
 
     with open("trainD.txt", "w") as file:
         file.writelines(fileListD)
