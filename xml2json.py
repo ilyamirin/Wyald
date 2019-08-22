@@ -4,19 +4,20 @@ import glob
 
 import xmltodict, json
 from lxml import etree
+import xmlschema
 
 categoryList = dict()
 
 def xml2json(path, filename, data):
-    jsonData = {}
 
-    o = xmltodict.parse(data)
-
-    if not 'dataset' in o or not 'images' in o['dataset'] or not 'image' in o['dataset']['images']:
-        print('xml is incorrect' )
+    if not xmlschema.validate(data):
+        print(f"{filename} is invalid")
         return {}
 
+    o = xmltodict.parse(data)
     imgList = o['dataset']["images"]["image"]
+
+    jsonData = {}
     for image in imgList:
         if not "@frame" in image:
             continue
