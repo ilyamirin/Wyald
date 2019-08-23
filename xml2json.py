@@ -49,7 +49,7 @@ def xml2json(xmlPath, wpath=None, overwrite=False):
         else:
             print(f"{Fore.GREEN} JSON {jsonName} will be written to {wpath} {Style.RESET_ALL}")
 
-        json.dump(jsonData, open(os.path.join(wpath, jsonName)), indent=3)
+        json.dump(jsonData, open(os.path.join(wpath, jsonName), "w"), indent=3)
 
     return jsonData
 
