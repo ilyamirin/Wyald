@@ -5,7 +5,7 @@ import xmltodict, json
 
 from colorama import Fore, Style
 
-from verifier import extractCategory, makeJSONname
+from utils import makeJSONname, extractCategory
 
 
 def xml2json(xmlPath, wpath=None, overwrite=False):
