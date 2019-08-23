@@ -36,6 +36,16 @@
         valid.txt
         test.txt
     ---------------------------------------------------------
+    marks.json structure:
+    ---------------------------------------------------------
+    {
+        "frame_1":{
+            "fullCategory": {ctg}_{subctg},
+            "coords": [y1, x1, y2, x2]
+            }
+        ...
+    }
+    ---------------------------------------------------------
     actualize_info.json structure:
     ---------------------------------------------------------
     {
@@ -181,18 +191,31 @@ def actualizeInfoWithFrames(framesPath, actualInfoPath=None):
     frames = frames.get("dirs")
 
     for idx, framesDir in enumerate(frames):
-        print("\r{:.1f}% of work has been done".format(idx / len(frames) * 100), end="")
-
         framesDir = framesDir[:-1]
 
         fullpath = os.path.join([framesPath] + framesDir)
-        frames = walk(fullpath, targetExtensions=Extensions.images).get("extensions")
+        images = walk(fullpath, targetExtensions=Extensions.images).get("extensions")
 
-        putNested(actualInfo, framesDir, len(frames))
+        putNested(actualInfo, framesDir, len(images))
+        print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
 
 
-def actualizeInfoWithJsons():
-    pass
+def actualizeInfoWithJsons(framesPath, actualInfoPath=None):
+    actualInfo = {}
+    if actualInfoPath is not None:
+        actualInfo = json.load(open(actualInfoPath, "r"))
+
+    frames = walk(framesPath, targetDir="frames")
+    frames = frames.get("dirs")
+
+    for idx, framesDir in enumerate(frames):
+        framesDir[-1] = "marks.json"
+
+        fullpath = os.path.join([framesPath] + framesDir)
+        marks = json.load(open(fullpath, "r"))
+
+        putNested(actualInfo, framesDir[:-1], len(marks))
+        print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
 
 
 def check():
