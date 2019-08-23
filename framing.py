@@ -3,44 +3,60 @@ import imageio
 import imgaug as ia
 from imgaug import augmenters as iaa
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
+from colorama import Fore, Back, Style
 
+import random
 import cv2
 import json
 
 lastIdx = dict()
 
-def augmentImage(imgDsrDir, fname, category, image, x1, x2, y1, y2, Idx=0):
-    print(imgDsrDir)
-    print(category)
-    images = [ image for i in range(0, 4)]
-    seq = iaa.Sequential([
-        iaa.MotionBlur(3, 15),
+def augmentImage(image, x1, x2, y1, y2):
+    augMethods = [
+        iaa.MotionBlur(20, random.randint(0, 360)),
         iaa.AdditiveGaussianNoise(scale=(10, 60)),
-        iaa.GammaContrast(1.5)
-    ], random_order=True)
+        iaa.AllChannelsCLAHE(clip_limit=5)
+    ]
+    aug = iaa.OneOf(augMethods)
 
     bbs = BoundingBoxesOnImage([
-        BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2) for i in range(0, 4)
-    ], shape=images.shape)
+        BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2)
+    ], shape=image)
 
-    image_aug, bbs_aug = seq(image=images, bounding_boxes=bbs)
-    for img in image_aug:
-        Idx += 1
-        ia.imshow(img)
-        cv2.imwrite(os.path.join(imgDsrDir, f'aug-{Idx}-{fname}'), img)
-    return images
+    images_aug, bbs_aug = aug(images=[ image for _ in range(len(augMethods)) ],
+                              bounding_boxes=[ bbs for _ in range(len(augMethods)) ])
+    return images_aug, bbs_aug
+
+
+def saveAugmentedImages(imgDsrDir, fname, category, images_aug, bbs, Idx=0):
+    print(f"Start augmentation of image {fname} \n Location: {imgDsrDir}-aug \t Category: {category} ")
+
+    for img in images_aug:
+         Idx += 1
+         # ia.imshow(img)
+
+         augDir = f"{imgDsrDir}-aug"
+         if not os.path.exists(augDir):
+             os.mkdir(augDir)
+             print(f"Directory {augDir} was create")
+
+         imgPath = os.path.join(augDir, f'aug-{Idx}-{fname}')
+         cv2.imwrite(imgPath, img)
+         print(f"{Fore.GREEN} Augmented image {imgPath} was created")
+
 
 def framingVideoFile(videoDir, frameDir, videoPath):
     if not os.path.exists(frameDir):
         os.makedirs(frameDir)
+        print(f"{Fore.GREEN} Directory {frameDir} was created")
 
     curCoinDir = os.path.basename(videoPath)[:-4]
     frameDstPath = os.path.join(frameDir, curCoinDir)
     if not os.path.exists(frameDstPath):
         os.makedirs(frameDstPath)
+        print(f"{Fore.GREEN} Directory {frameDstPath} was created")
 
-    jsonFin = open(os.path.join(frameDir, curCoinDir, 'mark.json'), 'r')
-    jsonData = json.load(jsonFin)
+    jsonData = json.load(open(os.path.join(frameDir, curCoinDir, 'mark.json'), 'r'))
     cap = cv2.VideoCapture(videoPath)
     # idx = 0
     while cap.isOpened():
@@ -52,34 +68,36 @@ def framingVideoFile(videoDir, frameDir, videoPath):
         if not categoryName in lastIdx:
             lastIdx[categoryName] = 0
         lastIdx[categoryName] += 1
-        # if lastIdx[categoryName] > 15:
-        #     break
-        fname = f'{curCoinDir}-{lastIdx[categoryName]}.jpg'
+        if lastIdx[categoryName] > 5:
+             break
+        fname = f'{curCoinDir}-{lastIdx[categoryName]}.png'
         t = os.path.join(frameDstPath, fname)
         print(t)
         if not os.path.exists(t):
-            # key = os.path.join(frameDir, vname[:-4], fname)
-            # y1, x1, y2, x2 = jsonData[key]["coords"]
-            # images = augmentImage(f"{frameDstPath}-aug", fname, jsonData[key]["category"], frame, x1, x2, y1, y2)
             cv2.imwrite(t, frame)
-    jsonFin.close()
+
+            y1, x1, y2, x2 = jsonData[t]["coords"]
+            for i in range(6):
+                images, bbs = augmentImage(frame, x1, x2, y1, y2)
+                saveAugmentedImages(frameDstPath, fname, jsonData[t]["category"], images, bbs)
 
 
 def main():
-    rootDir = r'C:\Projects\data\coins'
-    rootDir = r'E:\data\coins\sber'
-    frameDir = r'E:\data\coins\frames' # os.path.join(rootDir, frames)
-    videoDir = os.path.join(rootDir, 'video')
+    rootDir = r'D:\Projects\coins-project\data'
+    frameDir = os.path.join(rootDir, 'frames')
+    keys = ['sber', 'rubles']
+    coinsDirs = { 'sber': os.path.join(rootDir, 'sber'), 'rubles' : os.path.join(rootDir, 'rubles')}
+    videoDirs = { 'sber' : os.path.join(coinsDirs['sber'], 'video'), 'rubles': os.path.join(coinsDirs['rubles'], 'video')}
 
     for dir in os.listdir(frameDir):
-        videoPath = os.path.join(videoDir, f'{dir}.MOV')
-        if os.path.exists(videoPath):
-            framingVideoFile(videoDir, frameDir, videoPath)
+        for k in keys:
+            videoPath = os.path.join(videoDirs[k], f'{dir}.{ "MOV" if k == "sber" else "mp4"}')
+            if not os.path.exists(videoPath):
+                print(f"{Fore.RED} File {videoPath} was not found")
+                continue
+            framingVideoFile(videoDirs[k], frameDir, videoPath)
+            break
 
-    # for dir in os.listdir(videoDir):
-    #     videoSubDir = os.path.join(videoDir, dir)
-    #     for videoFile in os.listdir(videoSubDir):
-    #         framingVideoFile(videoSubDir, frameDir, videoFile)
 
 if __name__ == "__main__":
     main()

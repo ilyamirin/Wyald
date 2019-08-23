@@ -16,7 +16,7 @@ def xml2json(path, filename, xmlPath):
         o = xmltodict.parse(data)
     except:
         print(f"{Fore.RED} Couldn't parse {xmlPath}")
-        return {}
+        return {}, None
 
     imgList = o['dataset']["images"]["image"]
 
@@ -38,7 +38,7 @@ def xml2json(path, filename, xmlPath):
 
         category = f"{filename[:-11]}{subCategory}"
         category = category.replace("_", "-")
-        jsonData[os.path.join(path, filename[:-8], f"{filename[:-8]}-{imgIdx}.jpg")] = {  # cut 8 symbols '.MOV.xml'
+        jsonData[os.path.join(path, category, f"{filename[:-8]}-{imgIdx}.jpg")] = {  # cut 8 symbols '.MOV.xml'
             'category': category,  # cut 7 symbols '-v1.MOV.xml' or '-v{n}.xml'
             'coords': [y1, x1, y2, x2]
         }
@@ -50,7 +50,7 @@ def xml2json(path, filename, xmlPath):
                 "name": category.replace("_", "-")
             }
 
-    return jsonData
+    return jsonData, category
 
 
 def checkDir(path, toCreate=False):
@@ -67,7 +67,13 @@ def checkDir(path, toCreate=False):
 def tryLoadJsonData(pathToFile):
     if not os.path.exists(pathToFile):
         return {}
-    return json.load(open(pathToFile, 'r'))
+    res = None
+    try:
+        res = json.load(open(pathToFile, 'r'))
+    except:
+        return {}
+
+    return res
 
 
 def main():
@@ -96,15 +102,14 @@ def main():
             jpd['path'] = path
             print(Style.RESET_ALL)
             print(f"Start process file {path}")
-            jsonData = xml2json(frameDir, filename, path)
+            jsonData, category = xml2json(frameDir, filename, path)
 
             if jsonData == {}:
                 print(f"{Fore.RED} The file {filename} is invalid")
                 continue
 
-            coinDir = checkDir(os.path.join(frameDir, filename[:-8]), toCreate=True) # cur 8 symbols '.MOV.xml'
-            markJsonPath = os.path.join(coinDir, 'mark.json')
-            json.dump(jsonData, open(markJsonPath, 'w'), indent=3)
+            markJsonPath = os.path.join(originDir, 'mark.json')
+            json.dump(jsonData, open(markJsonPath, 'a'), indent=3)
             jpd['jsonPath'] = markJsonPath
 
             jProcessData[filename] = jpd

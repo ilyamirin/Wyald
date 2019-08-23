@@ -4,24 +4,23 @@
     <list default="true" id="da1d752f-5aec-4178-9255-f24619086606" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/CoinsRecognition.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CoinsRecognition.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers_1.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers_2.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers_3.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers_1.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers_2.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers_3.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers_1.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers_2.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers_3.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers_1.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers_2.svm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers_3.svm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers_1.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers-v1.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers_2.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers-v2.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers_3.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_1-ruble-avers-v3.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers_1.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers-v1.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers_2.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-aversv-v2.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers_3.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_10-rubles-avers-v3.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers_1.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers-v1.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers_2.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers-v2.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers_3.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_2-rubles-avers-v3.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers_1.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers-v1.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers_2.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers-v2.svm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers_3.svm" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/detector/detector_5-rubles-avers-v3.svm" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dlib_detector/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlib_detector/train_object_detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/dlib_detector/train_object_detector.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/framing.py" beforeDir="false" afterPath="$PROJECT_DIR$/framing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tracking.py" beforeDir="false" afterPath="$PROJECT_DIR$/tracking.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xml2json.py" beforeDir="false" afterPath="$PROJECT_DIR$/xml2json.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -43,7 +42,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/main.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/xml2json.py" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -63,7 +62,49 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.main">
+  <component name="RunManager" selected="Python.xml2json">
+    <configuration name="detector_test" type="PythonConfigurationType" factoryName="Python">
+      <module name="CoinsRecognition" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Program Files\Python\Python36\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dlib_detector" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dlib_detector/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="framing" type="PythonConfigurationType" factoryName="Python">
+      <module name="CoinsRecognition" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Program Files\Python\Python36\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/framing.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python">
       <module name="CoinsRecognition" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -71,7 +112,7 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Program Files (x86)\Python\Python37-32\python.exe" />
+      <option name="SDK_HOME" value="C:\Program Files\Python\Python36\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -130,8 +171,32 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="xml2json" type="PythonConfigurationType" factoryName="Python">
+      <module name="CoinsRecognition" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Program Files\Python\Python36\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/xml2json.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.main" />
+      <item itemvalue="Python.framing" />
+      <item itemvalue="Python.detector_test" />
+      <item itemvalue="Python.xml2json" />
       <item itemvalue="Python.test" />
       <item itemvalue="Python.tracking" />
     </list>
