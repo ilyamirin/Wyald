@@ -2,7 +2,7 @@
     ---------------------------------------------------------
     Project data structure:
     ---------------------------------------------------------
-        videos/
+        frames/
             original/
                 coin1/
                     avers*/
@@ -60,6 +60,7 @@
 
 import os
 import argparse
+import json
 
 from colorama import Fore, Style
 
@@ -124,8 +125,70 @@ def crossMatchVideoAndMarks(marks, videos):
     return videos, marks
 
 
-def actualizeInfoWithFrames(filePath=None):
-    pass
+def putNested(dictionary, keys, value):
+    key = keys.pop(0)
+
+    if not keys:
+        dictionary[key] = value
+    else:
+        dictionary[key] = dictionary.get(key, {})
+        putNested(dictionary[key], keys, value)
+
+
+def walk(path, targetDir=None, targetFile=None, targetExtensions=None):
+    found = {
+        "root": path,
+        "dirs": [],
+        "files": [],
+        "extensions": []
+    }
+
+    path = os.path.normcase(path)
+
+    def cutPart(path, part):
+        return path.replace(part, "")
+
+    def splitPath(path):
+        return path.split(os.path.sep)[1:]
+
+    for root, dirs, files in os.walk(path):
+        for dir_ in dirs:
+            if targetDir is not None and dir_ == targetDir:
+                target = os.path.join(root, dir_)
+                found["dirs"].append(splitPath(cutPart(target, path)))
+
+        if targetFile is not None or targetExtensions is not None:
+            for file in files:
+                if file == targetFile:
+                    key = "files"
+                elif file.endswith(targetExtensions):
+                    key = "extensions"
+                else:
+                    continue
+
+                target = os.path.join(root, file)
+                found[key].append(splitPath(cutPart(target, path)))
+
+    return found
+
+
+def actualizeInfoWithFrames(framesPath, actualInfoPath=None):
+    actualInfo = {}
+    if actualInfoPath is not None:
+        actualInfo = json.load(open(actualInfoPath, "r"))
+
+    frames = walk(framesPath, targetDir="frames")
+    frames = frames.get("dirs")
+
+    for idx, framesDir in enumerate(frames):
+        print("\r{:.1f}% of work has been done".format(idx / len(frames) * 100), end="")
+
+        framesDir = framesDir[:-1]
+
+        fullpath = os.path.join([framesPath] + framesDir)
+        frames = walk(fullpath, targetExtensions=Extensions.images).get("extensions")
+
+        putNested(actualInfo, framesDir, len(frames))
 
 
 def actualizeInfoWithJsons():
@@ -137,7 +200,7 @@ def check():
 
 
 def main():
-    pass
+    walk(r"D:\Projects\coins-project\data\sber", targetDir="xml", targetExtensions=".MOV")
 
 
 if __name__ == "__main__":
