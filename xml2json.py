@@ -1,29 +1,30 @@
 import os
-import sys
-import glob
+import argparse
 
 import xmltodict, json
-import xmlschema
-from colorama import Fore, Back, Style
 
-categoryList = dict()
+from colorama import Fore, Style
 
-def xml2json(path, filename, xmlPath):
-    o = {}
+from verifier import extractCategory, makeJSONname
+
+
+def xml2json(xmlPath, wpath=None, overwrite=False):
+    jsonData = {}
+    category, basename = extractCategory(xmlPath)
+    jsonName = makeJSONname(basename)
+
     try:
         file = open(os.path.join(xmlPath), "r")
         data = file.read()
         o = xmltodict.parse(data)
+        imgList = o["dataset"]["images"]["image"]
     except:
         print(f"{Fore.RED} Couldn't parse {xmlPath}")
         return {}, None
 
-    imgList = o['dataset']["images"]["image"]
-
-    jsonData = {}
     for image in imgList:
         if not "@frame" in image:
-            print(f"{Fore.RED} {filename} : The attribute '@frame' was not found")
+            # print(f"{Fore.RED} {filename} : The attribute '@frame' was not found")
             continue
 
         imgIdx = image['@frame']
@@ -32,93 +33,59 @@ def xml2json(path, filename, xmlPath):
         x2 = x1 + int(image['box']['@width'])
         y2 = y1 + int(image['box']['@height'])
 
-        subCategory = f"-{image['@category']}" if '@category' in image else ""
-        if subCategory != "":
-            filename.replace(f"-{subCategory}", "")
+        subCategory = f"_{image['@category']}" if '@category' in image else ""
 
-        category = f"{filename[:-11]}{subCategory}"
-        category = category.replace("_", "-")
-        jsonData[os.path.join(path, category, f"{filename[:-8]}-{imgIdx}.jpg")] = {  # cut 8 symbols '.MOV.xml'
-            'category': category,  # cut 7 symbols '-v1.MOV.xml' or '-v{n}.xml'
-            'coords': [y1, x1, y2, x2]
+        jsonData[f"frame_{imgIdx}"] = {
+            "category": category,
+            "subcategory": subCategory,
+            "coords": [y1, x1, y2, x2]
         }
 
-        if not category in categoryList:
-            count = len(categoryList)
-            categoryList[category] = {
-                "categoryIndex": count,
-                "name": category.replace("_", "-")
-            }
+    if wpath is not None:
+        os.makedirs(wpath, exist_ok=True)
 
-    return jsonData, category
+        if overwrite and os.path.exists(os.path.join(wpath, jsonName)):
+            print(f"{Fore.RED} JSON {jsonName} will be overwritten in {wpath} {Style.RESET_ALL}")
+        else:
+            print(f"{Fore.GREEN} JSON {jsonName} will be written to {wpath} {Style.RESET_ALL}")
 
+        json.dump(jsonData, open(os.path.join(wpath, jsonName)), indent=3)
 
-def checkDir(path, toCreate=False):
-    if os.path.exists(path):
-        return path
-    if toCreate:
-        os.mkdir(path)
-        print(f"{Fore.GREEN} The directory {path} was create")
-        return path
-    print(f"{Fore.RED} The directory {path} is not found...")
-    exit(1)
+    return jsonData
 
 
-def tryLoadJsonData(pathToFile):
-    if not os.path.exists(pathToFile):
-        return {}
-    res = None
-    try:
-        res = json.load(open(pathToFile, 'r'))
-    except:
-        return {}
+def xml2jsonFromFolder(rpath, wpath, overwrite=False):
+    filenames = os.listdir(rpath)
+    filenames = [name for name in filenames if name.endswith(".xml")]
 
-    return res
+    for filename in filenames:
+        xml2json(
+            xmlPath=os.path.join(rpath, filename),
+            wpath=wpath,
+            overwrite=overwrite
+        )
+
+
+def makeArgumentsParser():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--rpath", help="Path ro folder with xml-files which should be converted")
+    parser.add_argument("--wpath", help="Path to folder where json-files will be written (overwritten)")
+    parser.add_argument("--overwrite", help="Whether overwrite existing json-files", action="store_true")
+
+    return parser
 
 
 def main():
-    rootDir = r"D:\Projects\coins-project\data"
+    parser = makeArgumentsParser()
+    args = parser.parse_args()
 
-    xmlDir = checkDir(os.path.join(rootDir, 'xml'))
-    frameDir = checkDir(os.path.join(rootDir, 'frames'), toCreate=True)
-    coinsDir = checkDir(os.path.join(rootDir, 'sber'))
-    videoDir = checkDir(os.path.join(coinsDir, 'video'))
+    xml2jsonFromFolder(
+        rpath=args.rpath,
+        wpath=args.wpath,
+        overwrite=args.overwrite
+    )
 
-    fileProcessDataPath = os.path.join(rootDir, 'process-data.txt')
-    jProcessData = tryLoadJsonData(fileProcessDataPath)
-    foutProcess = open(fileProcessDataPath, 'w')
-
-    for dir in os.listdir(xmlDir):
-        for filename in os.listdir(os.path.join(xmlDir, dir)): # filename ends '.MOV.xml'
-            jpd = {}
-
-            videoPath = os.path.join(videoDir, filename[:-4]) # cut 4 symbols '.xml'
-            if not os.path.exists(videoPath):
-                print(f"{Fore.RED} Videofile {videoPath} is not found")
-                continue
-
-            path = os.path.join(xmlDir, dir, filename)
-            jpd['video'] = videoPath
-            jpd['path'] = path
-            print(Style.RESET_ALL)
-            print(f"Start process file {path}")
-            jsonData, category = xml2json(frameDir, filename, path)
-
-            if jsonData == {}:
-                print(f"{Fore.RED} The file {filename} is invalid")
-                continue
-
-            markJsonPath = os.path.join(originDir, 'mark.json')
-            json.dump(jsonData, open(markJsonPath, 'a'), indent=3)
-            jpd['jsonPath'] = markJsonPath
-
-            jProcessData[filename] = jpd
-
-    f = open(os.path.join(rootDir, 'categories.txt'), 'w')
-    json.dump(categoryList, f, indent=3)
-    json.dump(jProcessData, foutProcess, indent=3)
-    json.dump(jProcessData, foutProcess, indent=3)
-    foutProcess.close()
 
 
 if __name__ == "__main__":
