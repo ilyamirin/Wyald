@@ -30,23 +30,25 @@
             coin1.json
             ...
             coinN.json
+        sets/
+            train.txt
+            valid.txt
+            test.txt
         actual_info.json
+        processed_files.txt
         categories.txt
-        train.txt
-        valid.txt
-        test.txt
     ---------------------------------------------------------
     marks.json structure:
     ---------------------------------------------------------
     {
-        "frame_1":{
-            "fullCategory": {ctg}_{subctg},
+        "frame_ID":{
+            "fullCategory": category_subcategory,
             "coords": [y1, x1, y2, x2]
             }
         ...
     }
     ---------------------------------------------------------
-    actualize_info.json structure:
+    actual_info.json structure:
     ---------------------------------------------------------
     {
         "coin1": {
@@ -65,16 +67,20 @@
             ...
     }
     ---------------------------------------------------------
+    Full image names:
+    ---------------------------------------------------------
+        category_subcategory-frame_ID-{origin}.png
+    ---------------------------------------------------------
     * - optional
+    {origin} - original or augmented
     """
 
 import os
-import argparse
 import json
 
 from colorama import Fore, Style
 
-from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested
+from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested, updateNested
 from config import Extensions
 
 
@@ -114,10 +120,8 @@ def crossMatchVideoAndMarks(marks, videos):
     return videos, marks
 
 
-def actualizeInfoWithFrames(framesPath, actualInfoPath=None):
+def actualizeInfoWithFrames(framesPath, wpath):
     actualInfo = {}
-    if actualInfoPath is not None:
-        actualInfo = json.load(open(actualInfoPath, "r"))
 
     frames = walk(framesPath, targetDir="frames")
     frames = frames.get("dirs")
@@ -128,14 +132,20 @@ def actualizeInfoWithFrames(framesPath, actualInfoPath=None):
         fullpath = os.path.join([framesPath] + framesDir)
         images = walk(fullpath, targetExtensions=Extensions.images).get("extensions")
 
-        putNested(actualInfo, framesDir, len(images))
+        if framesDir[-1] == "avers" or framesDir[-1] == "revers":
+            putNested(actualInfo, framesDir, len(images))
+            framesDir = framesDir[:-1]
+
+        updateNested(actualInfo, framesDir + ["overall"], len(images))
+        updateNested(actualInfo, framesDir[:-1] + ["overall"], len(images))
+
         print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
 
+    json.dump(actualInfo, open(os.path.join(wpath, "actual>info.json"), "w"), indent=3)
 
-def actualizeInfoWithJsons(framesPath, actualInfoPath=None):
+
+def actualizeInfoWithJsons(framesPath, wpath):
     actualInfo = {}
-    if actualInfoPath is not None:
-        actualInfo = json.load(open(actualInfoPath, "r"))
 
     frames = walk(framesPath, targetDir="frames")
     frames = frames.get("dirs")
@@ -146,16 +156,20 @@ def actualizeInfoWithJsons(framesPath, actualInfoPath=None):
         fullpath = os.path.join([framesPath] + framesDir)
         marks = json.load(open(fullpath, "r"))
 
-        putNested(actualInfo, framesDir[:-1], len(marks))
+        if framesDir[-1] == "avers" or framesDir[-1] == "revers":
+            putNested(actualInfo, framesDir, len(marks))
+            framesDir = framesDir[:-1]
+
+        updateNested(actualInfo, framesDir + ["overall"], len(marks))
+        updateNested(actualInfo, framesDir[:-1] + ["overall"], len(marks))
+
         print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
 
-
-def check():
-    pass
+    json.dump(actualInfo, open(os.path.join(wpath, "actual>info.json"), "w"), indent=3)
 
 
 def main():
-    walk(r"D:\Projects\coins-project\data\sber", targetDir="xml", targetExtensions=".MOV")
+    pass
 
 
 if __name__ == "__main__":
