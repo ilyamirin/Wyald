@@ -131,6 +131,7 @@ def crossMatchVideoAndMarks(marks, videos):
 
 def actualizeInfoWithFrames(framesPath, wpath):
     actualInfo = {}
+    os.makedirs(wpath, exist_ok=True)
 
     frames = walk(framesPath, targetDir="frames")
     frames = frames.get("dirs")
@@ -155,6 +156,7 @@ def actualizeInfoWithFrames(framesPath, wpath):
 
 def actualizeInfoWithJsons(framesPath, wpath):
     actualInfo = {}
+    os.makedirs(wpath, exist_ok=True)
 
     frames = walk(framesPath, targetDir="frames")
     frames = frames.get("dirs")

@@ -14,3 +14,7 @@ class Extensions:
 class Constants:
     separator = "-"
     merged = "merged"
+
+
+class Path:
+    project = ""

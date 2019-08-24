@@ -8,8 +8,9 @@ from imgaug import augmenters as iaa
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 from colorama import Fore, Back, Style
 
-from utils import makeJSONname, extractBasename
-from config import Extensions, Constants as const
+from verifier import actualizeInfoWithFrames
+from utils import makeJSONname, extractCategory, extractBasename
+from config import Extensions, Path, Constants as const
 
 
 lastIdx = dict()
@@ -73,6 +74,27 @@ def generateFrames(videoPath):
             break
 
         yield frame
+
+
+def processVideoFolder(folderPath, marksPath, framesPath, actualInfoPath=None, extension=Extensions.png, params=None):
+    videos = [video for video in os.listdir(folderPath) if video.endswith(Extensions.mov)]
+
+    actualInfo = {}
+    if actualInfoPath is not None:
+        actualInfo = json.load(open(actualInfoPath, "r"))
+    else:
+        actualInfoPath = Path.project
+
+    for video in videos:
+        filePath = os.path.join(folderPath, video)
+
+        category = extractCategory(video)
+        globalIdx = actualInfo.get(category, {}).get("original", {}).get("overall", 0)
+
+        print(f"\n{Fore.GREEN} Video {filePath} is being processed {Style.RESET_ALL}")
+        frameVideo(filePath, marksPath, framesPath, globalIdx, extension, params)
+        
+    actualizeInfoWithFrames(framesPath, os.path.dirname(actualInfoPath))
 
 
 def augmentImage(image, x1, x2, y1, y2):
