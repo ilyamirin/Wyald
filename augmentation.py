@@ -1,16 +1,14 @@
 import os
-import random
-import imageio
-import imgaug as ia
-from imgaug import augmenters as iaa
 import json
+
 import cv2
+import numpy as np
+
 from colorama import Fore, Style
-from imgaug import augmenters as iaa
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 
-from verifier import downloadActualInfo, actualizeInfoWithFrames
-from utils import extendName, makeJSONname, walk
+from verifier import downloadActualInfo, getFullCategory
+from utils import extendName, makeJSONname, walk, getNested
 from config import Extensions, Path, Constants as const
 
 
@@ -25,10 +23,17 @@ def augmentImage(image, augmentations, repeats=1, boxes=None):
     return images if boxes is None else (images, bbs)
 
 
-def augmentCategory(categoryPath, augmentPath, augmentations, extension=Extensions.png, repeats=1, params=None):
+def augmentCategory(categoryPath, fullCategory, augmentPath, augmentations, extension=Extensions.png, repeats=1,
+                    params=None):
+
+    if repeats == 0:
+        return
+
     marksName = makeJSONname(const.marks)
     marksPath = os.path.join(categoryPath, marksName)
     framesPath = os.path.join(categoryPath, const.frames)
+
+    augmentedCategoryPath = os.path.join(augmentPath, *fullCategory.split("_"))
 
     try:
         marks = json.load(open(marksPath, "r"))
@@ -41,7 +46,6 @@ def augmentCategory(categoryPath, augmentPath, augmentations, extension=Extensio
     for name, frameData in marks.items():
         frameName = frameData[const.image]
         box = frameData[const.coords]
-        fullCategory = frameData[const.fullCategory]
         ctgIdx = frameData[const.ctgIdx]
         shape = frameData[const.imageShape]
 
@@ -49,9 +53,6 @@ def augmentCategory(categoryPath, augmentPath, augmentations, extension=Extensio
 
         image = cv2.imread(os.path.join(framesPath, frameName))
         augmented = augmentImage(image=image, augmentations=augmentations, repeats=repeats, boxes=[box])
-
-        category, subcategory = fullCategory.split("_")
-        augmentedCategoryPath = os.path.join(augmentPath, category, subcategory)
 
         augmentedFramesPath = os.path.join(augmentedCategoryPath, const.frames)
         os.makedirs(augmentedFramesPath, exist_ok=True)
@@ -75,48 +76,53 @@ def augmentCategory(categoryPath, augmentPath, augmentations, extension=Extensio
           f"Reults in {augmentedCategoryPath} {Style.RESET_ALL}")
 
 
-def saveAugmentedImages(imgDsrDir, fname, category, images_aug, bbs, Idx=0):
-    print(f"Start augmentation of image {fname} \n Location: {imgDsrDir}-aug \t Category: {category} ")
+def getMedianCount(actualInfo):
+    counts = []
 
-    for img in images_aug:
-         Idx += 1
-         # ia.imshow(img)
+    for ctg, info in actualInfo.items():
+        for subCtg, count in info.items():
+            if subCtg == const.overall:
+                continue
 
-         augDir = f"{imgDsrDir}-aug"
-         if not os.path.exists(augDir):
-             os.mkdir(augDir)
-             print(f"Directory {augDir} was create")
+            counts.append(count)
 
-         imgPath = os.path.join(augDir, f'aug-{Idx}-{fname}')
-         cv2.imwrite(imgPath, img)
-         print(f"{Fore.GREEN} Augmented image {imgPath} was created")
+    return np.median(counts)
 
 
+def augmentDataset(augmentationName, augmentations, imageExtension, params=None):
+    actualInfo = downloadActualInfo().get(const.original, {})
 
-def videoAug(path, ToShow=False):
-    cap = cv2.VideoCapture(path)
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR_VNG)
-        m_img = cv2.medianBlur(frame, 5)
-        # cimg = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        ret, th1 = cv2.threshold(m_img, 120, 255, cv2.CAP_PROP_INTELPERC_DEPTH_CONFIDENCE_THRESHOLD)
-        # timg = cv2.inpaint(m_img, th1, 3, cv2.INPAINT_NS)
+    median = getMedianCount(actualInfo)
 
-        cv2.imshow(f"{path}", th1)
-        cv2.waitKey(5)
+    path = os.path.join(Path.dataset, const.original)
+    keys = walk(path, targetDirs=const.frames)
+
+    for set_ in keys:
+        set_ = set_[:-1]
+        count = getNested(actualInfo, set_, 0)
+
+        category, subcategory = set_
+        categoryPath = os.path.join(path, category, subcategory)
+
+        if count == 0:
+            print(f"{Fore.RED} Update actual info for {categoryPath} {Style.RESET_ALL}")
+            continue
+
+        repeats = median // count
+
+        augmentCategory(
+            categoryPath=categoryPath,
+            fullCategory=getFullCategory(category, subcategory),
+            augmentPath=os.path.join(Path.dataset, augmentationName),
+            augmentations=augmentations,
+            extension=imageExtension,
+            repeats=repeats,
+            params=params
+        )
 
 
 def main():
-    # image = imageio.imread(r"D:\Projects\coins-project\data\sber\pretty_names\video\Tigrenok_2010-v1.MOV")
-    # ia.seed(4)
-    # rotate = iaa.Affine(rotate=(-25, -25))
-    # image_aug = rotate.augment_image(image)
-    # cv2.imwrite("temp.png", image_aug)
-    path = r"D:\Projects\coins-project\data\sber\video\viktor_tsoy_2012_v2.MOV"
-    videoAug(path, ToShow=True)
+    pass
 
 
 if __name__ == "__main__":
