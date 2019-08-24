@@ -16,7 +16,7 @@ from config import Extensions, Path, Constants as const
 lastIdx = dict()
 
 
-def frameVideo(filePath, marksPath, framesPath, globalIdx=0, extension=Extensions.png, params=None):
+def frameVideo(filePath, marksPath, framesPath, globalIdx=0, overwrite=False, extension=Extensions.png, params=None):
     basename = extractBasename(filePath)
 
     try:
@@ -29,9 +29,9 @@ def frameVideo(filePath, marksPath, framesPath, globalIdx=0, extension=Extension
     framesGenerator = generateFrames(filePath)
 
     marksSeparated = {}
+    total = 0
     for idx, frame in enumerate(framesGenerator):
         frameID = f"frame_{idx}"
-
         if frameID not in marks:
             continue
         else:
@@ -61,9 +61,17 @@ def frameVideo(filePath, marksPath, framesPath, globalIdx=0, extension=Extension
         }
 
         frameName = f"{category}{subcategory}{const.separator}{frameID}{const.separator}{const.original}{extension}"
-        cv2.imwrite(os.path.join(dirPath, frameName), frame, params)
+
+        framePath = os.path.join(dirPath, frameName)
+        if not overwrite and os.path.exists(framePath):
+            continue
+
+        cv2.imwrite(framePath, frame, params)
+        total += 1
 
         print("\rFrame #{} has been added".format(idx), end="")
+
+    print(f"\n{Fore.GREEN} Added {total} frames in total {Style.RESET_ALL}")
 
 
 def generateFrames(videoPath):
@@ -76,14 +84,14 @@ def generateFrames(videoPath):
         yield frame
 
 
-def processVideoFolder(folderPath, marksPath, framesPath, actualInfoPath=None, extension=Extensions.png, params=None):
+def processVideoFolder(folderPath, marksPath, framesPath, overwrite=False, extension=Extensions.png, params=None):
     videos = [video for video in os.listdir(folderPath) if video.endswith(Extensions.mov)]
 
     actualInfo = {}
-    if actualInfoPath is not None:
-        actualInfo = json.load(open(actualInfoPath, "r"))
-    else:
-        actualInfoPath = Path.project
+    try:
+        actualInfo = json.load(open(Path.actualInfo, "r"))
+    except Exception as e:
+        print(e)
 
     for video in videos:
         filePath = os.path.join(folderPath, video)
@@ -92,9 +100,17 @@ def processVideoFolder(folderPath, marksPath, framesPath, actualInfoPath=None, e
         globalIdx = actualInfo.get(category, {}).get(const.original, {}).get(const.overall, 0)
 
         print(f"\n{Fore.GREEN} Video {filePath} is being processed {Style.RESET_ALL}")
-        frameVideo(filePath, marksPath, framesPath, globalIdx, extension, params)
+        frameVideo(
+            filePath=filePath,
+            marksPath=marksPath,
+            framesPath=framesPath,
+            globalIdx=globalIdx,
+            overwrite=overwrite,
+            extension=extension,
+            params=params
+        )
 
-    actualizeInfoWithFrames(framesPath, os.path.dirname(actualInfoPath))
+    actualizeInfoWithFrames(framesPath)
 
 
 def augmentImage(image, x1, x2, y1, y2):
