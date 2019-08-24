@@ -5,7 +5,7 @@ import cv2
 
 from colorama import Fore, Style
 
-from verifier import actualizeInfoWithFrames, downloadActualInfo
+from verifier import actualizeInfoWithFrames, downloadActualInfo, getFullCategory
 from utils import makeJSONname, extractCategory, extractBasename, extendName, readLines, writeLines, getNested, updateNested, putNested
 from config import Extensions, Path, Constants as const
 
@@ -41,12 +41,9 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
         countKeys = [const.original, category, subcategory]
         categoryCountIdx = getNested(actualInfo, countKeys, 0)
 
-        if subcategory != const.merged:
-            subcategory = "_" + subcategory
-
         idx += categoryCountIdx
         frameID = f"frame_{idx}"
-        fullCategory = f"{category}{subcategory}"
+        fullCategory = getFullCategory(category, subcategory)
 
         if fullCategory not in categories:
             categories.append(fullCategory)

@@ -104,6 +104,14 @@ from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested, u
 from config import Extensions, Path, Constants as const
 
 
+def getFullCategory(category, subcategory):
+    return f"{category}_{subcategory}"
+
+
+def splitFullCategory(fullCategory):
+    return fullCategory.split("_")
+
+
 def downloadActualInfo():
     try:
         actualInfo = json.load(open(Path.actualInfo, "r"))

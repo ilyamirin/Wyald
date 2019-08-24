@@ -53,13 +53,13 @@ class Constants:
 
 
 class Path:
-    project = ""
+    dataset = ""
 
-    actualInfo = os.path.join(project, f"{Constants.actualInfo}{Extensions.json}")
-    processedFiles = os.path.join(project, f"{Constants.processedFiles}{Extensions.txt}")
-    categories = os.path.join(project, f"{Constants.categories}{Extensions.txt}")
+    actualInfo = os.path.join(dataset, f"{Constants.actualInfo}{Extensions.json}")
+    processedFiles = os.path.join(dataset, f"{Constants.processedFiles}{Extensions.txt}")
+    categories = os.path.join(dataset, f"{Constants.categories}{Extensions.txt}")
 
-    sets = os.path.join(project, Constants.sets)
-    frames = os.path.join(project, Constants.frames)
-    rawVideos = os.path.join(project, Constants.raw, Constants.videos)
-    rawJson = os.path.join(project, Constants.raw, Constants.json)
+    sets = os.path.join(dataset, Constants.sets)
+    frames = os.path.join(dataset, Constants.frames)
+    rawVideos = os.path.join(dataset, Constants.raw, Constants.videos)
+    rawJson = os.path.join(dataset, Constants.raw, Constants.json)
