@@ -98,7 +98,7 @@ import json
 
 from colorama import Fore, Style
 
-from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested, updateNested
+from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested, updateNested, matchLists
 from config import Extensions, Path, Constants as const
 
 
@@ -106,26 +106,18 @@ def matchVideosToMarks(marks, videos):
     marks = os.listdir(marks) if not isinstance(marks, list) else marks
     videos = os.listdir(videos) if not isinstance(videos, list) else videos
 
-    for name in videos[::-1]:
-        if makeJSONname(extractBasename(name)) not in marks:
-            print(f"{Fore.RED} No matched json for {name} {Style.RESET_ALL}")
+    transformer = lambda x: makeJSONname(extractBasename(x))
 
-            videos.remove(name)
-
-    return videos
+    return matchLists(master=marks, slave=videos, transformer=transformer, showMessages=True)
 
 
 def matchMarksToVideos(marks, videos):
     marks = os.listdir(marks) if not isinstance(marks, list) else marks
     videos = os.listdir(videos) if not isinstance(videos, list) else videos
 
-    for name in marks[::-1]:
-        if makeMOVname(extractBasename(name)) not in videos:
-            print(f"{Fore.RED} No matched video for {name} {Style.RESET_ALL}")
+    transformer = lambda x: makeMOVname(extractBasename(x))
 
-            videos.remove(name)
-
-    return marks
+    return matchLists(master=videos, slave=marks, transformer=transformer, showMessages=True)
 
 
 def crossMatchVideoAndMarks(marks, videos):

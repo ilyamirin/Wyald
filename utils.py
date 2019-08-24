@@ -26,12 +26,33 @@ def extendName(basename, extension):
     return basename + extension
 
 
+def changeExtension(path, extension):
+    path, _ = os.path.splitext(path)
+    return extendName(path, extension)
+
+
 def makeJSONname(basename):
     return extendName(basename, Extensions.json)
 
 
 def makeMOVname(basename):
     return extendName(basename, Extensions.mov)
+
+
+def matchLists(master, slave, transformer:callable=None, getMismatched=False, showMessages=False):
+    transformer = lambda x: x if transformer is None else transformer
+
+    matched = []
+    mismatched = []
+    for element in slave:
+        if transformer(element) not in master:
+            mismatched.append(element)
+            if showMessages:
+                print(f"{Fore.RED} No matched element for {element} {Style.RESET_ALL}")
+        else:
+            matched.append(element)
+
+    return matched if not getMismatched else (matched, mismatched)
 
 
 def readLines(path):
