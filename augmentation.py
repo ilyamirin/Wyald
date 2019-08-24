@@ -9,12 +9,23 @@ from colorama import Fore, Style
 from imgaug import augmenters as iaa
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 
-from verifier import downloadActualInfo, getFullCategory, splitFullCategory
+from verifier import downloadActualInfo, getFullCategory, splitFullCategory, fitCoords
 from utils import extendName, makeJSONname, walk, getNested, openJsonSafely
 from config import Extensions, Path, Constants as const
 
 
-def augmentImage(image, augmentations, repeats=1, boxes=None):
+def makeBoxesPretty(augBoxes):
+    prettyBbs = []
+    for imageBB in augBoxes:
+        bb = imageBB.bounding_boxes[0]  # TODO: рассмотреть случаи, когда больше 1 рамки на фотке
+        prettyBbs.append(
+            fitCoords([bb.y1_int, bb.x1_int, bb.y2_int, bb.x2_int], imageBB.shape[:2])
+        )
+
+    return prettyBbs
+
+
+def augmentImageRepeated(image, augmentations, repeats=1, boxes=None):
     bbs = BoundingBoxesOnImage([
         BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2) for y1, x1, y2, x2 in boxes
     ], shape=image)
@@ -22,19 +33,24 @@ def augmentImage(image, augmentations, repeats=1, boxes=None):
     images, imagesBoxes = augmentations(images=[image for _ in range(repeats)],
                                 bounding_boxes=[bbs for _ in range(repeats)])
 
-    prettyBbs = []
-    for imageBB in imagesBoxes:
-        h, w = imageBB.shape[:2]
-        bb = imageBB.bounding_boxes[0] #TODO: рассмотреть случаи, когда больше 1 рамки на фотке
-        prettyBbs.append(
-            [max(0, bb.y1_int), max(0, bb.x1_int), min(h, bb.y2_int), min(w, bb.x2_int)]
-        )
+    prettyBbs = makeBoxesPretty(imagesBoxes)
 
     return images if boxes is None else zip(images, prettyBbs)
 
 
-def augmentCategory(categoryPath, fullCategory, augmentPath, augmentations, extension=Extensions.png, repeats=1,
-                    params=None):
+def augmentImageSingle(image, box, augmentations):
+    y1, x1, y2, x2 = box
+    bb = BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2)
+
+    augImage, augBox = augmentations(image=image, bounding_boxes=bb)
+
+    augBox = fitCoords([augBox.y1_int, augBox.x1_int, augBox.y2_int, augBox.x2_int], augImage.shape[:2])
+
+    return augImage, augBox
+
+
+def augmentCategoryWithRepeats(categoryPath, fullCategory, augmentPath, augmentations, extension=Extensions.png,
+                               repeats=1, params=None):
 
     print(f"Category {fullCategory} is being augmented")
     if repeats == 0:
@@ -67,7 +83,7 @@ def augmentCategory(categoryPath, fullCategory, augmentPath, augmentations, exte
         frameID = name.split(const.separator)[1]
 
         image = cv2.imread(os.path.join(framesPath, frameName))
-        augmented = augmentImage(image=image, augmentations=augmentations, repeats=repeats, boxes=[box])
+        augmented = augmentImageRepeated(image=image, augmentations=augmentations, repeats=repeats, boxes=[box])
 
         augmentedFramesPath = os.path.join(augmentedCategoryPath, const.frames)
         os.makedirs(augmentedFramesPath, exist_ok=True)
@@ -92,7 +108,7 @@ def augmentCategory(categoryPath, fullCategory, augmentPath, augmentations, exte
           f"Results in {augmentedCategoryPath} {Style.RESET_ALL}")
 
 
-def getMedianCount(actualInfo):
+def getTargetCount(actualInfo, targetType="median"):
     counts = []
 
     for ctg, info in actualInfo.items():
@@ -102,13 +118,20 @@ def getMedianCount(actualInfo):
 
             counts.append(count)
 
-    return np.median(counts)
+    if targetType == "median":
+        tcount = np.median(counts)
+    elif targetType == "max":
+        tcount = np.max(counts)
+    elif targetType == "min":
+        tcount = np.min(counts)
+
+    return tcount
 
 
-def augmentDataset(augmentationName, augmentations, imageExtension, repeats=1, params=None):
+def augmentDatasetWithRepeats(augmentationName, augmentations, imageExtension, repeats=1, params=None):
     actualInfo = downloadActualInfo().get(const.original, {})
 
-    median = getMedianCount(actualInfo)
+    target = getTargetCount(actualInfo, targetType="max") # вообще не самый хороший выбор
 
     path = os.path.join(Path.dataset, const.original)
     keys = walk(path, targetDirs=const.frames).get("dirs")
@@ -124,16 +147,121 @@ def augmentDataset(augmentationName, augmentations, imageExtension, repeats=1, p
             print(f"{Fore.RED}Update actual info for {categoryPath} {Style.RESET_ALL}")
             continue
 
-        multiplier = int(median // count)
+        multiplier = int(target // count)
         ctgRepeats = repeats * multiplier
 
-        augmentCategory(
+        augmentCategoryWithRepeats(
             categoryPath=categoryPath,
             fullCategory=getFullCategory(category, subcategory),
             augmentPath=os.path.join(Path.dataset, augmentationName),
             augmentations=augmentations,
             extension=imageExtension,
             repeats=ctgRepeats,
+            params=params
+        )
+
+
+def augmentationGenerator(framesPath, marks, augmentations, number):
+    keys = list(marks.keys())
+
+    for idx in range(number):
+        name = keys[random.randint(0, len(marks) - 1)]
+        frameData = marks[name]
+
+        frameName = frameData[const.image]
+        fullCategory = frameData[const.fullCategory]
+        box = frameData[const.coords]
+        ctgIdx = frameData[const.ctgIdx]
+        frameID = name.split(const.separator)[1]
+
+        frame = cv2.imread(os.path.join(framesPath, frameName))
+
+        augFrame, augBox = augmentImageSingle(frame, box, augmentations)
+
+        augmentedName = f"{fullCategory}{const.separator}{frameID}_{idx}{const.separator}{const.augmented}"
+        augFrameData = {
+            const.image: augmentedName,
+            const.coords: augBox,
+            const.fullCategory: fullCategory,
+            const.ctgIdx: ctgIdx,
+            const.imageShape: augFrame.shape[:2]
+        }
+
+        yield augFrame, augFrameData
+
+
+def augmentCategoryWithGenerator(categoryPath, fullCategory, augmentPath, augmentations, augmentationsNumber,
+                                 extension=Extensions.png, params=None):
+
+    print(f"Category {fullCategory} is being augmented")
+    if augmentationsNumber == 0:
+        print(f"{Fore.RED}No augmentations for {categoryPath}{Style.RESET_ALL}")
+        return
+
+    marksName = makeJSONname(const.marks)
+    marksPath = os.path.join(categoryPath, marksName)
+    framesPath = os.path.join(categoryPath, const.frames)
+
+    augmentedCategoryPath = os.path.join(augmentPath, *splitFullCategory(fullCategory))
+
+    try:
+        marks = json.load(open(marksPath, "r"))
+    except:
+        print(f"{Fore.RED}There is no marks {marksPath} for frames in {categoryPath} {Style.RESET_ALL}")
+        return
+
+    augGenerator = augmentationGenerator(framesPath, marks, augmentations, augmentationsNumber)
+
+    augmentedFramesPath = os.path.join(augmentedCategoryPath, const.frames)
+    os.makedirs(augmentedFramesPath, exist_ok=True)
+
+    augmentedMarks = {}
+    for i, aug in enumerate(augGenerator):
+        print(f"\rFrame {i} out of {augmentationsNumber} is ready", end="")
+
+        augFrame, augFrameData = aug
+
+        augmentedName = augFrameData.pop(const.image)
+        augmentedFileName = extendName(augmentedName, extension)
+        augFrameData[const.image] = augmentedFileName
+        cv2.imwrite(os.path.join(augmentedFramesPath, augmentedFileName), augFrame, params)
+
+        augmentedMarks[augmentedName] = augFrameData
+
+    print()
+    json.dump(augmentedMarks, open(os.path.join(augmentedCategoryPath, marksName), "w"), indent=3)
+    print(f"{Fore.GREEN}Category {fullCategory} has been successfully augmented. "
+          f"Results in {augmentedCategoryPath} {Style.RESET_ALL}")
+
+
+def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension, multiplier, params=None):
+    actualInfo = downloadActualInfo().get(const.original, {})
+
+    target = getTargetCount(actualInfo, targetType="max") # вообще не самый хороший выбор
+
+    path = os.path.join(Path.dataset, const.original)
+    keys = walk(path, targetDirs=const.frames).get("dirs")
+
+    for set_ in keys:
+        set_ = set_[:-1]
+        count = getNested(dictionary=actualInfo, keys=set_, default=0)
+
+        category, subcategory = set_
+        categoryPath = os.path.join(path, category, subcategory)
+
+        if count == 0:
+            print(f"{Fore.RED}Update actual info for {categoryPath} {Style.RESET_ALL}")
+            continue
+
+        number = int(multiplier * target) - count
+
+        augmentCategoryWithGenerator(
+            categoryPath=categoryPath,
+            fullCategory=getFullCategory(category, subcategory),
+            augmentPath=os.path.join(Path.dataset, augmentationName),
+            augmentations=augmentations,
+            augmentationsNumber=number,
+            extension=imageExtension,
             params=params
         )
 

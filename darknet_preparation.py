@@ -8,11 +8,12 @@ from config import Extensions, Path, Constants as const
 
 
 def cleanOldMarks(path):
+    print("Cleaning old darknet marks")
     clean(path, targetExtensions=Extensions.txt)
 
 
-def extractMarks(framesDir):
-    marksPath = os.path.join(framesDir, makeJSONname(const.marks))
+def extractMarks(categoryDir):
+    marksPath = os.path.join(categoryDir, makeJSONname(const.marks))
 
     try:
         marks = json.load(open(marksPath, "r"))
@@ -23,7 +24,7 @@ def extractMarks(framesDir):
 
     for frameIdx, frameName in enumerate(marks):
         frameMarks = marks[frameName]
-        framePath = os.path.join(framesDir, frameMarks[const.image])
+        framePath = os.path.join(categoryDir, frameMarks[const.image])
 
         if not os.path.exists(framePath):
             continue
@@ -39,10 +40,24 @@ def extractMarks(framesDir):
 
         darknetString = f"{ctgIdx} {xc} {yc} {bw} {bh}\n"
 
-        with open(os.path.join(framesDir, extendName(frameName, Extensions.txt)), "w") as f:
+        if bh < 10 or bw < 10: # грубая проверка на адекватность разметки
+            darknetString = ""
+
+        with open(os.path.join(categoryDir, extendName(frameName, Extensions.txt)), "w") as f:
             f.write(darknetString)
 
         print("\r{:.1f}% of work has been done".format(frameIdx + 1 / len(marks) * 100), end="")
+
+
+def extractMarksThroughDataset(datasetPath):
+    cleanOldMarks(datasetPath)
+    frames = walk(datasetPath, targetDirs=const.frames).get("dirs")
+
+    for dirsSet in frames:
+        dirsSet = dirsSet[:-1]
+
+        categoryDir = os.path.join(datasetPath, *dirsSet)
+        extractMarks(categoryDir)
 
 
 def makeSets(directories, trainPart=0.8, validPart=0.2, ignoreOld=False):

@@ -5,12 +5,9 @@ import cv2
 
 from colorama import Fore, Style
 
-from verifier import actualizeInfoWithFrames, downloadActualInfo, getFullCategory
+from verifier import actualizeInfoWithFrames, downloadActualInfo, getFullCategory, fitCoords
 from utils import makeJSONname, openJsonSafely, extractBasename, extendName, readLines, writeLines, getNested, updateNested, putNested
 from config import Extensions, Path, Constants as const
-
-
-lastIdx = dict()
 
 
 def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, extension=Extensions.png, params=None):
@@ -66,7 +63,7 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
 
         frameInfo = {
             const.image: extendName(frameName, extension),
-            const.coords: frameMarks[const.coords],
+            const.coords: fitCoords(frameMarks[const.coords], frame.shape[:2]),
             const.fullCategory: fullCategory,
             const.ctgIdx: ctgIdx,
             const.imageShape: frame.shape[:2]
@@ -112,7 +109,10 @@ def generateFrames(videoPath):
 
 def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, datasetPath=Path.dataset, overwrite=False,
                        extension=Extensions.png, params=None):
-    videos = [video for video in os.listdir(folderPath) if video.endswith(Extensions.mov)]
+
+    processedVideos = readLines(Path.processedFiles)
+    videos = [video for video in os.listdir(folderPath) if video.endswith(Extensions.mov)
+              and video not in processedVideos]
 
     actualInfo = downloadActualInfo()
 
@@ -130,7 +130,10 @@ def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, datase
             params=params
         )
 
+        processedVideos.append(video)
+
     print("\nActualizing info...")
+    writeLines(processedVideos, Path.processedFiles)
     actualizeInfoWithFrames(Path.dataset)
 
 

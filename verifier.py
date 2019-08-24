@@ -104,6 +104,13 @@ from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested, u
 from config import Extensions, Path, Constants as const
 
 
+def fitCoords(box, imageShape):
+    h, w = imageShape
+    y1, x1, y2, x2 = box
+
+    return [max(0, y1), max(0, x1), min(h, y2), min(w, x2)]
+
+
 def getFullCategory(category, subcategory):
     return f"{category}_{subcategory}"
 
