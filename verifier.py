@@ -26,10 +26,19 @@
                     marks.json
             augmented/
             ...
-        jsons/
-            coin1.json
-            ...
-            coinN.json
+        raw_data/
+            videos/
+                coin1_X.MOV
+                ...
+                coinN_X.MOV
+            jsons/
+                coin1_X.json
+                ...
+                coinN_X.json
+            xml/
+                coin1_X.xml
+                ...
+                coinN_X.xml
         sets/
             train.txt
             valid.txt

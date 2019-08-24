@@ -9,3 +9,8 @@ class Extensions:
     @property
     def images(self):
         return Extensions.jpg, Extensions.png, Extensions.jpeg
+
+
+class Constants:
+    separator = "-"
+    merged = "merged"

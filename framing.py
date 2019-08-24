@@ -1,15 +1,79 @@
 import os
-import imageio
-import imgaug as ia
+import random
+import json
+
+import cv2
+
 from imgaug import augmenters as iaa
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 from colorama import Fore, Back, Style
 
-import random
-import cv2
-import json
+from utils import makeJSONname, extractBasename
+from config import Extensions, Constants as const
+
 
 lastIdx = dict()
+
+
+def frameVideo(filePath, marksPath, framesPath, globalIdx=0, extension=Extensions.png, params=None):
+    basename = extractBasename(filePath)
+
+    try:
+        jsonName = makeJSONname(basename)
+        marks = json.load(open(os.path.join(marksPath, jsonName), "r"))
+    except:
+        print(f"{Fore.RED} There is no json file {jsonName} for {filePath} {marksPath} {Style.RESET_ALL}")
+        return
+
+    framesGenerator = generateFrames(filePath)
+
+    marksSeparated = {}
+    for idx, frame in enumerate(framesGenerator):
+        frameID = f"frame_{idx}"
+
+        if frameID not in marks:
+            continue
+        else:
+            frameMarks = marks[frameID]
+
+        category = marks.get("category")
+        subcategory = marks.get("subcategory", "")
+
+        dirPath = os.path.join(framesPath, "original", category, subcategory, "frames")
+        os.makedirs(dirPath, exist_ok=True)
+
+        if subcategory:
+            key = subcategory
+            subcategory = "_" + subcategory
+        else:
+            key = const.merged
+
+        if key not in marksSeparated:
+            marksSeparated[key] = {}
+
+        idx += globalIdx
+        frameID = f"frame_{idx}"
+
+        marksSeparated[key][frameID] = {
+            "fullCategory": f"{category}{subcategory}",
+            "coords": frameMarks["coords"]
+        }
+
+        frameName = f"{category}{subcategory}{const.separator}{frameID}{const.separator}original{extension}"
+        cv2.imwrite(os.path.join(dirPath, frameName), frame, params)
+
+        print("\rFrame #{} has been added".format(idx), end="")
+
+
+def generateFrames(videoPath):
+    cap = cv2.VideoCapture(videoPath)
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        yield frame
+
 
 def augmentImage(image, x1, x2, y1, y2):
     augMethods = [

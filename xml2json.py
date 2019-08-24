@@ -33,7 +33,7 @@ def xml2json(xmlPath, wpath=None, overwrite=False):
         x2 = x1 + int(image['box']['@width'])
         y2 = y1 + int(image['box']['@height'])
 
-        subCategory = f"_{image['@category']}" if '@category' in image else ""
+        subCategory = f"{image['@category']}" if '@category' in image else ""
 
         jsonData[f"frame_{imgIdx}"] = {
             "category": category,
