@@ -34,7 +34,7 @@ def xml2json(xmlPath, wpath=None, overwrite=False):
         x2 = x1 + int(image['box']['@width'])
         y2 = y1 + int(image['box']['@height'])
 
-        subCategory = f"{image['@category']}" if '@category' in image else ""
+        subCategory = image.get("category", const.merged)
 
         jsonData[f"frame_{imgIdx}"] = {
             const.category: category,

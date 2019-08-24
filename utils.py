@@ -97,6 +97,26 @@ def updateNested(dictionary, keys, value):
         putNested(dictionary[key], keys, value)
 
 
+def getNested(dictionary, keys, default=None):
+    key = keys.pop(0)
+
+    if not keys:
+        return dictionary.get(key, default)
+    else:
+        return getNested(dictionary[key], keys, default)
+
+
+# def getFromAbyss(dictionary, levels=None, keySet=None):
+#     keySet = [] if keySet is None else keySet
+#
+#     if isinstance(dictionary, dict):
+#         if levels is None or len(keySet) != levels:
+#             for key, value in dictionary.items():
+#                 yield getFromAbyss(value, levels, keySet + [key])
+#         else:
+#             yield keySet
+
+
 def walk(path, targetDirs:(tuple, str)=None, targetFiles:(tuple, str)=None, targetExtensions:(tuple, str)=None):
     targetDirs = (targetDirs) if not isinstance(targetDirs, (tuple, list)) else targetDirs
     targetFiles = (targetFiles) if not isinstance(targetFiles, (tuple, list)) else targetFiles

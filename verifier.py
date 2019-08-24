@@ -2,7 +2,7 @@
     ---------------------------------------------------------
     Project data structure:
     ---------------------------------------------------------
-        frames/
+        darknet_data/
             original/
                 coin1/
                     avers*/
@@ -14,16 +14,12 @@
                             imageM.txt
                         marks.json
                     revers*/
-                coin2/
+                        ...
+                    merged*/
+                        ...
                     ...
                 coinN/
-                    frames/
-                        image1.png
-                        image1.txt
-                        ...
-                        imageM.png
-                        imageM.txt
-                    marks.json
+                    ...
             augmented/
             ...
         raw_data/
@@ -63,20 +59,26 @@
     actual_info.json structure:
     ---------------------------------------------------------
     {
-        "coin1": {
-            "original": {
-                "overall": l0 (= x0 + y0),
-                "avers"*: x0,
-                "revers"*: y0
-                },
-            "augmented": {
-                "overall": l1 (= x1 + y1),
+        "original": {
+            "coin1": {
                 "avers"*: x1,
-                "revers"*: y1
-                },
-            "overall": l2 (= l0 + l1)
+                "revers"*: y1,
+                "merged": z1
+                "overall": x1 + y1 + z1
             },
             ...
+            "coinN": {...}
+        },
+        "augmented": {
+            "coin1": {
+                "avers"*: x2,
+                "revers"*: y2,
+                "merged": z2,
+                "overall": x1 + y1 + z1
+            },
+            ...
+            "coinN": {...}
+        }
     }
     ---------------------------------------------------------
     Full frame names:
@@ -101,6 +103,14 @@ from colorama import Fore, Style
 from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested, updateNested, matchLists
 from config import Extensions, Path, Constants as const
 
+
+def downloadActualInfo():
+    try:
+        actualInfo = json.load(open(Path.actualInfo, "r"))
+    except:
+        actualInfo = {}
+
+    return actualInfo
 
 def matchVideosToMarks(marks, videos):
     marks = os.listdir(marks) if not isinstance(marks, list) else marks
@@ -130,50 +140,44 @@ def crossMatchVideoAndMarks(marks, videos):
     return videos, marks
 
 
-def actualizeInfoWithFrames(framesPath):
+def actualizeInfoWithFrames(datasetPath):
     actualInfo = {}
     os.makedirs(os.path.dirname(Path.actualInfo), exist_ok=True)
 
-    frames = walk(framesPath, targetDirs=const.frames)
+    frames = walk(datasetPath, targetDirs=const.frames)
     frames = frames.get("dirs")
 
-    for idx, framesDir in enumerate(frames):
-        framesDir = framesDir[:-1]
+    for idx, dirsList in enumerate(frames):
+        dirsList = dirsList[:-1]
 
-        fullpath = os.path.join([framesPath] + framesDir)
+        fullpath = os.path.join([datasetPath] + dirsList)
         images = walk(fullpath, targetExtensions=Extensions.images).get("extensions")
 
-        if framesDir[-1] == const.avers or framesDir[-1] == const.revers:
-            putNested(actualInfo, framesDir, len(images))
-            framesDir = framesDir[:-1]
-
-        updateNested(actualInfo, framesDir + [const.overall], len(images))
-        updateNested(actualInfo, framesDir[:-1] + [const.overall], len(images))
+        putNested(actualInfo, dirsList, len(images))
+        dirsList[-1] = const.overall
+        updateNested(actualInfo, dirsList, len(images))
 
         print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
 
     json.dump(actualInfo, open(Path.actualInfo, "w"), indent=3)
 
 
-def actualizeInfoWithJsons(framesPath):
+def actualizeInfoWithJsons(datasetPath):
     actualInfo = {}
     os.makedirs(os.path.dirname(Path.actualInfo), exist_ok=True)
 
-    frames = walk(framesPath, targetDirs=const.frames)
+    frames = walk(datasetPath, targetDirs=const.frames)
     frames = frames.get("dirs")
 
-    for idx, framesDir in enumerate(frames):
-        framesDir[-1] = "marks.json"
+    for idx, dirsList in enumerate(frames):
+        dirsList = dirsList[:-1]
 
-        fullpath = os.path.join([framesPath] + framesDir)
+        fullpath = os.path.join([datasetPath] + dirsList + [makeJSONname(const.marks)])
         marks = json.load(open(fullpath, "r"))
 
-        if framesDir[-1] == const.avers or framesDir[-1] == const.revers:
-            putNested(actualInfo, framesDir, len(marks))
-            framesDir = framesDir[:-1]
-
-        updateNested(actualInfo, framesDir + [const.overall], len(marks))
-        updateNested(actualInfo, framesDir[:-1] + [const.overall], len(marks))
+        putNested(actualInfo, dirsList, len(marks))
+        dirsList[-1] = const.overall
+        updateNested(actualInfo, dirsList, len(marks))
 
         print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
 
