@@ -22,6 +22,7 @@ class Constants:
     frames = "frames"
     sets = "sets"
     raw = "raw_data"
+    marks = "marks"
 
     actualInfo = "actual_info"
     processedFiles = "processed_files"
@@ -40,9 +41,12 @@ class Constants:
     merged = "merged"
 
     coords = "coordinates"
+    image = "image"
     category = "category"
     subcategory = "subcategory"
     fullCategory = "fullCategory"
+    ctgIdx = "index"
+    imageShape = "shape"
 
 
 class Path:

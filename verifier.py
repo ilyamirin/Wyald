@@ -50,9 +50,12 @@
     marks.json structure:
     ---------------------------------------------------------
     {
-        "frame_ID":{
+        full_frame_name:{
+            "image": full_frame_name + image_ext,
+            "coords": [y1, x1, y2, x2],
             "fullCategory": category_subcategory,
-            "coords": [y1, x1, y2, x2]
+            "ctgIdx": {0..N},
+            "imageShape": (h, w)
             }
         ...
     }
@@ -76,12 +79,18 @@
             ...
     }
     ---------------------------------------------------------
-    Full image names:
+    Full frame names:
     ---------------------------------------------------------
-        category_subcategory-frame_ID-{origin}.png
+        category_subcategory-frame_ID-{origin}
+    ---------------------------------------------------------
+    Image extensions:
+    ---------------------------------------------------------
+    .png
+    .jpg
+    .jpeg
     ---------------------------------------------------------
     * - optional
-    {origin} - original or augmented
+    {origin} - original or {augmented, hsv, bgr, ...}
     """
 
 import os

@@ -22,12 +22,16 @@ def extractCategory(filepath):
     return category, name
 
 
+def extendName(basename, extension):
+    return basename + extension
+
+
 def makeJSONname(basename):
-    return basename + Extensions.json
+    return extendName(basename, Extensions.json)
 
 
 def makeMOVname(basename):
-    return basename + Extensions.mov
+    return extendName(basename, Extensions.mov)
 
 
 def putNested(dictionary, keys, value):

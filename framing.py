@@ -9,14 +9,34 @@ from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 from colorama import Fore, Back, Style
 
 from verifier import actualizeInfoWithFrames
-from utils import makeJSONname, extractCategory, extractBasename
+from utils import makeJSONname, extractCategory, extractBasename, extendName
 from config import Extensions, Path, Constants as const
 
 
 lastIdx = dict()
 
 
+def loadCategories(path):
+    if not os.path.exists(path):
+        return []
+
+    with open(path, "r") as f:
+        ctgs = f.readlines()
+
+    ctgs = [l.strip() for l in ctgs]
+
+    return ctgs
+
+
+def updateCategories(categories, path):
+    categories = [ctg + "\n" for ctg in categories]
+
+    with open(path, "w") as f:
+        f.writelines(categories)
+
+
 def frameVideo(filePath, marksPath, framesPath, globalIdx=0, overwrite=False, extension=Extensions.png, params=None):
+    categories = loadCategories(Path.categories)
     basename = extractBasename(filePath)
 
     try:
@@ -54,13 +74,21 @@ def frameVideo(filePath, marksPath, framesPath, globalIdx=0, overwrite=False, ex
 
         idx += globalIdx
         frameID = f"frame_{idx}"
+        fullCategory = f"{category}{subcategory}"
 
-        marksSeparated[key][frameID] = {
-            const.fullCategory: f"{category}{subcategory}",
-            const.coords: frameMarks[const.coords]
+        if fullCategory not in categories:
+            categories.append(fullCategory)
+
+        ctgIdx = categories.index(fullCategory)
+        frameName = f"{fullCategory}{const.separator}{frameID}{const.separator}{const.original}"
+
+        marksSeparated[key][frameName] = {
+            const.image: extendName(frameName, extension),
+            const.coords: frameMarks[const.coords],
+            const.fullCategory: fullCategory,
+            const.ctgIdx: ctgIdx,
+            const.imageShape: frame.shape[:2]
         }
-
-        frameName = f"{category}{subcategory}{const.separator}{frameID}{const.separator}{const.original}{extension}"
 
         framePath = os.path.join(dirPath, frameName)
         if not overwrite and os.path.exists(framePath):
@@ -71,6 +99,8 @@ def frameVideo(filePath, marksPath, framesPath, globalIdx=0, overwrite=False, ex
 
         print("\rFrame #{} has been added".format(idx), end="")
 
+    updateCategories(categories, Path.categories)
+    print(f"\n{Fore.GREEN} Updated categories file {Path.categories} {Style.RESET_ALL}")
     print(f"\n{Fore.GREEN} Added {total} frames in total {Style.RESET_ALL}")
 
 
