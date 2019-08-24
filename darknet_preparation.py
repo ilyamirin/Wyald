@@ -96,12 +96,23 @@ def makeSets(directories, trainPart=0.8, validPart=0.2, ignoreOld=False):
         start = end
 
         writeLines(lines=info["content"], path=info["path"])
-
         print(f"\n{Fore.GREEN} Added {total} paths to {set_} {Style.RESET_ALL}")
 
 
-def updateSets():
-    pass
+def purifySets():
+    sets = {
+        const.train: os.path.join(Path.sets, extendName(const.train, Extensions.txt)),
+        const.valid: os.path.join(Path.sets, extendName(const.valid, Extensions.txt)),
+        const.test: os.path.join(Path.sets, extendName(const.test, Extensions.txt)),
+    }
+
+    for set_, path in sets.items():
+        files = readLines(path)
+        total = len(files)
+        files = [f for f in files if os.path.exists(f)]
+        writeLines(files, path)
+
+        print(f"Cleaned {total - len(files)} from {path}")
 
 
 def main():
