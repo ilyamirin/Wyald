@@ -100,7 +100,7 @@ import json
 
 from colorama import Fore, Style
 
-from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested, updateNested, matchLists
+from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested, updateNested, matchLists, openJsonSafely
 from config import Extensions, Path, Constants as const
 
 
@@ -109,16 +109,16 @@ def getFullCategory(category, subcategory):
 
 
 def splitFullCategory(fullCategory):
-    return fullCategory.split("_")
+    parts = fullCategory.split("_")
+    subcategory = parts.pop()
+    category = "_".join(parts)
+
+    return category, subcategory
 
 
 def downloadActualInfo():
-    try:
-        actualInfo = json.load(open(Path.actualInfo, "r"))
-    except:
-        actualInfo = {}
+    return openJsonSafely(Path.actualInfo)
 
-    return actualInfo
 
 def matchVideosToMarks(marks, videos):
     marks = os.listdir(marks) if not isinstance(marks, list) else marks
@@ -158,15 +158,16 @@ def actualizeInfoWithFrames(datasetPath):
     for idx, dirsList in enumerate(frames):
         dirsList = dirsList[:-1]
 
-        fullpath = os.path.join([datasetPath] + dirsList)
-        images = walk(fullpath, targetExtensions=Extensions.images).get("extensions")
+        fullpath = os.path.join(datasetPath, *dirsList)
+        images = walk(fullpath, targetExtensions=Extensions.images()).get("extensions")
 
-        putNested(actualInfo, dirsList, len(images))
+        putNested(dictionary=actualInfo, keys=dirsList, value=len(images))
         dirsList[-1] = const.overall
-        updateNested(actualInfo, dirsList, len(images))
+        updateNested(dictionary=actualInfo, keys=dirsList, value=len(images))
 
-        print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
+        print("\r{:.1f}% of work has been done".format((idx + 1) / len(frames) * 100), end="")
 
+    print()
     json.dump(actualInfo, open(Path.actualInfo, "w"), indent=3)
 
 
@@ -180,15 +181,16 @@ def actualizeInfoWithJsons(datasetPath):
     for idx, dirsList in enumerate(frames):
         dirsList = dirsList[:-1]
 
-        fullpath = os.path.join([datasetPath] + dirsList + [makeJSONname(const.marks)])
+        fullpath = os.path.join(datasetPath, *dirsList, makeJSONname(const.marks))
         marks = json.load(open(fullpath, "r"))
 
-        putNested(actualInfo, dirsList, len(marks))
+        putNested(dictionary=actualInfo, keys=dirsList, value=len(marks))
         dirsList[-1] = const.overall
-        updateNested(actualInfo, dirsList, len(marks))
+        updateNested(dictionary=actualInfo, keys=dirsList, value=len(marks))
 
-        print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
+        print("\r{:.1f}% of work has been done".format((idx + 1) / len(frames) * 100), end="")
 
+    print()
     json.dump(actualInfo, open(Path.actualInfo, "w"), indent=3)
 
 

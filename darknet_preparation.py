@@ -19,7 +19,7 @@ def extractMarks(framesDir):
     except FileNotFoundError:
         return
 
-    print(f"{Fore.GREEN} Processing {marksPath} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN}Processing {marksPath} {Style.RESET_ALL}")
 
     for frameIdx, frameName in enumerate(marks):
         frameMarks = marks[frameName]
@@ -76,7 +76,7 @@ def makeSets(directories, trainPart=0.8, validPart=0.2, ignoreOld=False):
     images = []
     marks = []
     for path in directories:
-        images.extend(walk(path, targetExtensions=Extensions.images).get("files"))
+        images.extend(walk(path, targetExtensions=Extensions.images()).get("files"))
         marks.extend(walk(path, targetExtensions=Extensions.txt).get("files"))
 
     transformer = lambda x: changeExtension(x, Extensions.txt)

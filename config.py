@@ -11,13 +11,14 @@ class Extensions:
     jpeg = ".jpeg"
 
 
-    @property
-    def images(self):
+    @staticmethod
+    def images():
         return Extensions.jpg, Extensions.png, Extensions.jpeg
 
 
 class Constants:
     separator = "-"
+    dataset = "dataset"
 
     frames = "frames"
     sets = "sets"
@@ -48,18 +49,19 @@ class Constants:
     category = "category"
     subcategory = "subcategory"
     fullCategory = "fullCategory"
-    ctgIdx = "index"
+    ctgIdx = "categoryIndex"
     imageShape = "shape"
 
 
 class Path:
-    dataset = ""
+    root = r"D:\Projects\coins-project\data\test_dataset"
 
-    actualInfo = os.path.join(dataset, f"{Constants.actualInfo}{Extensions.json}")
-    processedFiles = os.path.join(dataset, f"{Constants.processedFiles}{Extensions.txt}")
-    categories = os.path.join(dataset, f"{Constants.categories}{Extensions.txt}")
+    actualInfo = os.path.join(root, f"{Constants.actualInfo}{Extensions.json}")
+    processedFiles = os.path.join(root, f"{Constants.processedFiles}{Extensions.txt}")
+    categories = os.path.join(root, f"{Constants.categories}{Extensions.txt}")
 
-    sets = os.path.join(dataset, Constants.sets)
-    frames = os.path.join(dataset, Constants.frames)
-    rawVideos = os.path.join(dataset, Constants.raw, Constants.videos)
-    rawJson = os.path.join(dataset, Constants.raw, Constants.json)
+    sets = os.path.join(root, Constants.sets)
+    dataset = os.path.join(root, Constants.dataset)
+    rawVideos = os.path.join(root, Constants.raw, Constants.videos)
+    rawJson = os.path.join(root, Constants.raw, Constants.json)
+    rawXml = os.path.join(root, Constants.raw, Constants.xml)

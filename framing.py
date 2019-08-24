@@ -6,7 +6,7 @@ import cv2
 from colorama import Fore, Style
 
 from verifier import actualizeInfoWithFrames, downloadActualInfo, getFullCategory
-from utils import makeJSONname, extractCategory, extractBasename, extendName, readLines, writeLines, getNested, updateNested, putNested
+from utils import makeJSONname, openJsonSafely, extractBasename, extendName, readLines, writeLines, getNested, updateNested, putNested
 from config import Extensions, Path, Constants as const
 
 
@@ -21,7 +21,7 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
         jsonName = makeJSONname(basename)
         marks = json.load(open(os.path.join(marksPath, jsonName), "r"))
     except:
-        print(f"{Fore.RED} There is no json file {marksPath} for {filePath} {Style.RESET_ALL}")
+        print(f"{Fore.RED}There is no json file {marksPath} for {filePath} {Style.RESET_ALL}")
         return
 
     framesGenerator = generateFrames(filePath)
@@ -29,20 +29,22 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
     marksSeparated = {}
     total = 0
     for idx, frame in enumerate(framesGenerator):
+        if idx == 20:
+            break
         frameID = f"frame_{idx}"
         if frameID not in marks:
             continue
         else:
             frameMarks = marks[frameID]
 
-        category = marks.get(const.category)
-        subcategory = marks.get(const.subcategory)
+        category = frameMarks[const.category]
+        subcategory = frameMarks[const.subcategory]
 
         countKeys = [const.original, category, subcategory]
-        categoryCountIdx = getNested(actualInfo, countKeys, 0)
+        if idx == 0:
+            globalIdx = getNested(dictionary=actualInfo, keys=countKeys, default=0)
 
-        idx += categoryCountIdx
-        frameID = f"frame_{idx}"
+        frameID = f"frame_{idx + globalIdx}"
         fullCategory = getFullCategory(category, subcategory)
 
         if fullCategory not in categories:
@@ -50,6 +52,17 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
 
         ctgIdx = categories.index(fullCategory)
         frameName = f"{fullCategory}{const.separator}{frameID}{const.separator}{const.original}"
+
+        dirPath = os.path.join(datasetPath, const.original, category, subcategory)
+        framesPath = os.path.join(dirPath, const.frames)
+        framePath = os.path.join(framesPath, extendName(frameName, extension))
+
+        updateNested(dictionary=actualInfo, keys=countKeys, value=1)
+        if not overwrite and os.path.exists(framePath):
+            print("\rFrame #{} has been passed".format(idx), end="")
+            continue
+
+        os.makedirs(framesPath, exist_ok=True)
 
         frameInfo = {
             const.image: extendName(frameName, extension),
@@ -59,35 +72,32 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
             const.imageShape: frame.shape[:2]
         }
 
-        keySet = countKeys[1:].append(frameName)
-        putNested(marksSeparated, keySet, frameInfo)
-
-        dirPath = os.path.join(datasetPath, const.original, category, subcategory)
-        framesPath = os.path.join(dirPath, const.frames)
-
-        framePath = os.path.join(framesPath, frameName)
-        if not overwrite and os.path.exists(framePath):
-            continue
-        os.makedirs(framesPath, exist_ok=True)
+        keySet = countKeys + [frameName]
+        putNested(dictionary=marksSeparated, keys=keySet, value=frameInfo)
 
         cv2.imwrite(framePath, frame, params)
         total += 1
 
-        updateNested(actualInfo, countKeys, 1)
         print("\rFrame #{} has been added".format(idx), end="")
 
+    marksSeparated = marksSeparated[const.original]
+    print()
     for ctg, value in marksSeparated.items():
         for subctg, subctgMarks in value.items():
             subctgMarksJson = os.path.join(datasetPath, const.original, ctg, subctg,
                                            extendName(const.marks, Extensions.json))
 
-            json.dump(subctgMarks, open(subctgMarksJson, "w"), indent=3)
+            oldMarks = openJsonSafely(subctgMarksJson)
+            for k, v in subctgMarks.items():
+                oldMarks[k] = v
 
-            print(f"\n{Fore.GREEN} Added marks to {subctgMarksJson} {Style.RESET_ALL}")
+            json.dump(oldMarks, open(subctgMarksJson, "w"), indent=3)
+
+            print(f"{Fore.GREEN}Added marks to {subctgMarksJson} {Style.RESET_ALL}")
 
     writeLines(categories, Path.categories)
-    print(f"\n{Fore.GREEN} Updated categories file {Path.categories} {Style.RESET_ALL}")
-    print(f"\n{Fore.GREEN} Added {total} frames in total {Style.RESET_ALL}")
+    print(f"{Fore.GREEN}Updated categories file {Path.categories} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN}Added {total} frames in total {Style.RESET_ALL}")
 
 
 def generateFrames(videoPath):
@@ -100,31 +110,28 @@ def generateFrames(videoPath):
         yield frame
 
 
-def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, framesPath=Path.frames, overwrite=False,
+def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, datasetPath=Path.dataset, overwrite=False,
                        extension=Extensions.png, params=None):
     videos = [video for video in os.listdir(folderPath) if video.endswith(Extensions.mov)]
 
     actualInfo = downloadActualInfo()
 
-    globalIdx = 0
     for video in videos:
         filePath = os.path.join(folderPath, video)
 
-        category = extractCategory(video)
-        globalIdx = actualInfo.get(category, {}).get(const.original, {}).get(const.overall, globalIdx)
-
-        print(f"\n{Fore.GREEN} Video {filePath} is being processed {Style.RESET_ALL}")
+        print(f"\n{Fore.GREEN}Video {filePath} is being processed {Style.RESET_ALL}")
         frameVideo(
             filePath=filePath,
             marksPath=marksPath,
-            datasetPath=framesPath,
+            datasetPath=datasetPath,
             actualInfo=actualInfo,
             overwrite=overwrite,
             extension=extension,
             params=params
         )
 
-    actualizeInfoWithFrames(framesPath)
+    print("\nActualizing info...")
+    actualizeInfoWithFrames(Path.dataset)
 
 
 def main():

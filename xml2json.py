@@ -14,6 +14,16 @@ def xml2json(xmlPath, wpath=None, overwrite=False):
     category, basename = extractCategory(xmlPath)
     jsonName = makeJSONname(basename)
 
+    if wpath is not None:
+        os.makedirs(wpath, exist_ok=True)
+        if not overwrite and os.path.exists(os.path.join(wpath, jsonName)):
+            print(f"{Fore.RED}JSON {jsonName} already exists in {wpath} {Style.RESET_ALL}")
+            return
+        elif overwrite and os.path.exists(os.path.join(wpath, jsonName)):
+            print(f"{Fore.RED}JSON {jsonName} will be overwritten in {wpath} {Style.RESET_ALL}")
+        else:
+            print(f"{Fore.GREEN}JSON {jsonName} will be written to {wpath} {Style.RESET_ALL}")
+
     try:
         file = open(os.path.join(xmlPath), "r")
         data = file.read()
@@ -34,7 +44,7 @@ def xml2json(xmlPath, wpath=None, overwrite=False):
         x2 = x1 + int(image['box']['@width'])
         y2 = y1 + int(image['box']['@height'])
 
-        subCategory = image.get("category", const.merged)
+        subCategory = image.get("@category", const.merged)
 
         jsonData[f"frame_{imgIdx}"] = {
             const.category: category,
@@ -43,13 +53,6 @@ def xml2json(xmlPath, wpath=None, overwrite=False):
         }
 
     if wpath is not None:
-        os.makedirs(wpath, exist_ok=True)
-
-        if overwrite and os.path.exists(os.path.join(wpath, jsonName)):
-            print(f"{Fore.RED} JSON {jsonName} will be overwritten in {wpath} {Style.RESET_ALL}")
-        else:
-            print(f"{Fore.GREEN} JSON {jsonName} will be written to {wpath} {Style.RESET_ALL}")
-
         json.dump(jsonData, open(os.path.join(wpath, jsonName), "w"), indent=3)
 
     return jsonData
@@ -77,7 +80,7 @@ def makeArgumentsParser():
     return parser
 
 
-def main():
+if __name__ == "__main__":
     parser = makeArgumentsParser()
     args = parser.parse_args()
 
@@ -86,8 +89,3 @@ def main():
         wpath=args.wpath,
         overwrite=args.overwrite
     )
-
-
-
-if __name__ == "__main__":
-    main()

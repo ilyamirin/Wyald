@@ -1,5 +1,6 @@
 import os
 import shutil
+import json
 import numpy as np
 
 from random import shuffle, seed
@@ -22,6 +23,15 @@ def extractCategory(filepath):
     return category, name
 
 
+def openJsonSafely(path):
+    try:
+        j = json.load(open(path, "r"))
+    except:
+        j = {}
+
+    return j
+
+
 def extendName(basename, extension):
     return basename + extension
 
@@ -39,8 +49,12 @@ def makeMOVname(basename):
     return extendName(basename, Extensions.mov)
 
 
+def makeXMLname(basename):
+    return extendName(basename, Extensions.xml)
+
+
 def matchLists(master, slave, transformer:callable=None, getMismatched=False, showMessages=False):
-    transformer = lambda x: x if transformer is None else transformer
+    transformer = transformer if transformer is not None else lambda x: x
 
     matched = []
     mismatched = []
@@ -48,7 +62,7 @@ def matchLists(master, slave, transformer:callable=None, getMismatched=False, sh
         if transformer(element) not in master:
             mismatched.append(element)
             if showMessages:
-                print(f"{Fore.RED} No matched element for {element} {Style.RESET_ALL}")
+                print(f"{Fore.RED}No matched element for {element} {Style.RESET_ALL}")
         else:
             matched.append(element)
 
@@ -74,6 +88,14 @@ def writeLines(lines, path):
         f.writelines(lines)
 
 
+def safeNesting(nesting):
+    def wrapper(*args, **kwargs):
+        kwargs["keys"] = kwargs["keys"].copy()
+        return nesting(*args, **kwargs)
+    return wrapper
+
+
+@safeNesting
 def putNested(dictionary, keys, value):
     key = keys.pop(0)
 
@@ -81,9 +103,10 @@ def putNested(dictionary, keys, value):
         dictionary[key] = value
     else:
         dictionary[key] = dictionary.get(key, {})
-        putNested(dictionary[key], keys, value)
+        putNested(dictionary=dictionary[key], keys=keys, value=value)
 
 
+@safeNesting
 def updateNested(dictionary, keys, value):
     key = keys.pop(0)
 
@@ -94,16 +117,19 @@ def updateNested(dictionary, keys, value):
             dictionary[key] = value
     else:
         dictionary[key] = dictionary.get(key, {})
-        putNested(dictionary[key], keys, value)
+        updateNested(dictionary=dictionary[key], keys=keys, value=value)
 
 
+@safeNesting
 def getNested(dictionary, keys, default=None):
     key = keys.pop(0)
 
     if not keys:
         return dictionary.get(key, default)
+    elif not dictionary:
+        return default
     else:
-        return getNested(dictionary[key], keys, default)
+        return getNested(dictionary=dictionary.get(key, {}), keys=keys, default=default)
 
 
 # def getFromAbyss(dictionary, levels=None, keySet=None):
@@ -128,6 +154,8 @@ def walk(path, targetDirs:(tuple, str)=None, targetFiles:(tuple, str)=None, targ
         "extensions": []
     }
 
+    seekInFiles = targetFiles is not None or targetExtensions is not None
+
     path = os.path.normcase(path)
 
     def cutPart(path, part):
@@ -142,11 +170,11 @@ def walk(path, targetDirs:(tuple, str)=None, targetFiles:(tuple, str)=None, targ
                 target = os.path.join(root, dir_)
                 found["dirs"].append(splitPath(cutPart(target, path)))
 
-        if targetFiles is not None or targetExtensions is not None:
+        if seekInFiles:
             for file in files:
-                if file in targetFiles:
+                if targetFiles is not None and file in targetFiles:
                     key = "files"
-                elif file.endswith(targetExtensions):
+                elif targetExtensions is not None and file.endswith(targetExtensions):
                     key = "extensions"
                 else:
                     continue
@@ -197,9 +225,9 @@ def clean(path, through=False, targetFiles:tuple=None, targetExtensions:tuple=No
             os.unlink(filePath)
             total += 1
         except Exception as e:
-            print(f"{Fore.RED} Couldn't unlink {filePath} because of error: {e} {Style.RESET_ALL}")
+            print(f"{Fore.RED}Couldn't unlink {filePath} because of error: {e} {Style.RESET_ALL}")
 
-    print(f"\n{Fore.GREEN} Unlinked {total} files in total {Style.RESET_ALL}")
+    print(f"\n{Fore.GREEN}Unlinked {total} files in total {Style.RESET_ALL}")
 
 
 def permutate(arr, saveOrder=False, seedValue=1234):
