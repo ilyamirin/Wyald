@@ -23,6 +23,9 @@ class Constants:
     sets = "sets"
     raw = "raw_data"
     marks = "marks"
+    videos = "videos"
+    json = "json"
+    xml = "xml"
 
     actualInfo = "actual_info"
     processedFiles = "processed_files"
@@ -58,4 +61,5 @@ class Path:
 
     sets = os.path.join(project, Constants.sets)
     frames = os.path.join(project, Constants.frames)
-    raw = os.path.join(project, Constants.raw)
+    rawVideos = os.path.join(project, Constants.raw, Constants.videos)
+    rawJson = os.path.join(project, Constants.raw, Constants.json)

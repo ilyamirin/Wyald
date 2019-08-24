@@ -9,34 +9,15 @@ from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 from colorama import Fore, Back, Style
 
 from verifier import actualizeInfoWithFrames
-from utils import makeJSONname, extractCategory, extractBasename, extendName
+from utils import makeJSONname, extractCategory, extractBasename, extendName, readLines, writeLines
 from config import Extensions, Path, Constants as const
 
 
 lastIdx = dict()
 
 
-def loadCategories(path):
-    if not os.path.exists(path):
-        return []
-
-    with open(path, "r") as f:
-        ctgs = f.readlines()
-
-    ctgs = [l.strip() for l in ctgs]
-
-    return ctgs
-
-
-def updateCategories(categories, path):
-    categories = [ctg + "\n" for ctg in categories]
-
-    with open(path, "w") as f:
-        f.writelines(categories)
-
-
 def frameVideo(filePath, marksPath, framesPath, globalIdx=0, overwrite=False, extension=Extensions.png, params=None):
-    categories = loadCategories(Path.categories)
+    categories = readLines(Path.categories)
     basename = extractBasename(filePath)
 
     try:
@@ -99,7 +80,7 @@ def frameVideo(filePath, marksPath, framesPath, globalIdx=0, overwrite=False, ex
 
         print("\rFrame #{} has been added".format(idx), end="")
 
-    updateCategories(categories, Path.categories)
+    writeLines(categories, Path.categories)
     print(f"\n{Fore.GREEN} Updated categories file {Path.categories} {Style.RESET_ALL}")
     print(f"\n{Fore.GREEN} Added {total} frames in total {Style.RESET_ALL}")
 
@@ -114,7 +95,8 @@ def generateFrames(videoPath):
         yield frame
 
 
-def processVideoFolder(folderPath, marksPath, framesPath, overwrite=False, extension=Extensions.png, params=None):
+def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, framesPath=Path.frames, overwrite=False,
+                       extension=Extensions.png, params=None):
     videos = [video for video in os.listdir(folderPath) if video.endswith(Extensions.mov)]
 
     actualInfo = {}
@@ -123,11 +105,12 @@ def processVideoFolder(folderPath, marksPath, framesPath, overwrite=False, exten
     except Exception as e:
         print(e)
 
+    globalIdx = 0
     for video in videos:
         filePath = os.path.join(folderPath, video)
 
         category = extractCategory(video)
-        globalIdx = actualInfo.get(category, {}).get(const.original, {}).get(const.overall, 0)
+        globalIdx = actualInfo.get(category, {}).get(const.original, {}).get(const.overall, globalIdx)
 
         print(f"\n{Fore.GREEN} Video {filePath} is being processed {Style.RESET_ALL}")
         frameVideo(

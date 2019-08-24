@@ -34,6 +34,25 @@ def makeMOVname(basename):
     return extendName(basename, Extensions.mov)
 
 
+def readLines(path):
+    if not os.path.exists(path):
+        return []
+
+    with open(path, "r") as f:
+        lines = f.readlines()
+
+    lines = [l.strip() for l in lines]
+
+    return lines
+
+
+def writeLines(lines, path):
+    lines = [line + "\n" for line in lines]
+
+    with open(path, "w") as f:
+        f.writelines(lines)
+
+
 def putNested(dictionary, keys, value):
     key = keys.pop(0)
 
