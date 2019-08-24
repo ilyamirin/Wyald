@@ -37,10 +37,10 @@ def frameVideo(filePath, marksPath, framesPath, globalIdx=0, extension=Extension
         else:
             frameMarks = marks[frameID]
 
-        category = marks.get("category")
-        subcategory = marks.get("subcategory", "")
+        category = marks.get(const.category)
+        subcategory = marks.get(const.subcategory, "")
 
-        dirPath = os.path.join(framesPath, "original", category, subcategory, "frames")
+        dirPath = os.path.join(framesPath, const.original, category, subcategory, const.frames)
         os.makedirs(dirPath, exist_ok=True)
 
         if subcategory:
@@ -56,11 +56,11 @@ def frameVideo(filePath, marksPath, framesPath, globalIdx=0, extension=Extension
         frameID = f"frame_{idx}"
 
         marksSeparated[key][frameID] = {
-            "fullCategory": f"{category}{subcategory}",
-            "coords": frameMarks["coords"]
+            const.fullCategory: f"{category}{subcategory}",
+            const.coords: frameMarks[const.coords]
         }
 
-        frameName = f"{category}{subcategory}{const.separator}{frameID}{const.separator}original{extension}"
+        frameName = f"{category}{subcategory}{const.separator}{frameID}{const.separator}{const.original}{extension}"
         cv2.imwrite(os.path.join(dirPath, frameName), frame, params)
 
         print("\rFrame #{} has been added".format(idx), end="")
@@ -89,11 +89,11 @@ def processVideoFolder(folderPath, marksPath, framesPath, actualInfoPath=None, e
         filePath = os.path.join(folderPath, video)
 
         category = extractCategory(video)
-        globalIdx = actualInfo.get(category, {}).get("original", {}).get("overall", 0)
+        globalIdx = actualInfo.get(category, {}).get(const.original, {}).get(const.overall, 0)
 
         print(f"\n{Fore.GREEN} Video {filePath} is being processed {Style.RESET_ALL}")
         frameVideo(filePath, marksPath, framesPath, globalIdx, extension, params)
-        
+
     actualizeInfoWithFrames(framesPath, os.path.dirname(actualInfoPath))
 
 

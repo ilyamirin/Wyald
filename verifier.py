@@ -90,7 +90,7 @@ import json
 from colorama import Fore, Style
 
 from utils import makeJSONname, makeMOVname, extractBasename, walk, putNested, updateNested
-from config import Extensions
+from config import Extensions, Path, Constants as const
 
 
 def matchVideosToMarks(marks, videos):
@@ -133,7 +133,7 @@ def actualizeInfoWithFrames(framesPath, wpath):
     actualInfo = {}
     os.makedirs(wpath, exist_ok=True)
 
-    frames = walk(framesPath, targetDir="frames")
+    frames = walk(framesPath, targetDir=const.frames)
     frames = frames.get("dirs")
 
     for idx, framesDir in enumerate(frames):
@@ -142,23 +142,23 @@ def actualizeInfoWithFrames(framesPath, wpath):
         fullpath = os.path.join([framesPath] + framesDir)
         images = walk(fullpath, targetExtensions=Extensions.images).get("extensions")
 
-        if framesDir[-1] == "avers" or framesDir[-1] == "revers":
+        if framesDir[-1] == const.avers or framesDir[-1] == const.revers:
             putNested(actualInfo, framesDir, len(images))
             framesDir = framesDir[:-1]
 
-        updateNested(actualInfo, framesDir + ["overall"], len(images))
-        updateNested(actualInfo, framesDir[:-1] + ["overall"], len(images))
+        updateNested(actualInfo, framesDir + [const.overall], len(images))
+        updateNested(actualInfo, framesDir[:-1] + [const.overall], len(images))
 
         print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
 
-    json.dump(actualInfo, open(os.path.join(wpath, "actual>info.json"), "w"), indent=3)
+    json.dump(actualInfo, open(Path.actualInfo, "w"), indent=3)
 
 
 def actualizeInfoWithJsons(framesPath, wpath):
     actualInfo = {}
     os.makedirs(wpath, exist_ok=True)
 
-    frames = walk(framesPath, targetDir="frames")
+    frames = walk(framesPath, targetDir=const.frames)
     frames = frames.get("dirs")
 
     for idx, framesDir in enumerate(frames):
@@ -167,16 +167,16 @@ def actualizeInfoWithJsons(framesPath, wpath):
         fullpath = os.path.join([framesPath] + framesDir)
         marks = json.load(open(fullpath, "r"))
 
-        if framesDir[-1] == "avers" or framesDir[-1] == "revers":
+        if framesDir[-1] == const.avers or framesDir[-1] == const.revers:
             putNested(actualInfo, framesDir, len(marks))
             framesDir = framesDir[:-1]
 
-        updateNested(actualInfo, framesDir + ["overall"], len(marks))
-        updateNested(actualInfo, framesDir[:-1] + ["overall"], len(marks))
+        updateNested(actualInfo, framesDir + [const.overall], len(marks))
+        updateNested(actualInfo, framesDir[:-1] + [const.overall], len(marks))
 
         print("\r{:.1f}% of work has been done".format(idx + 1 / len(frames) * 100), end="")
 
-    json.dump(actualInfo, open(os.path.join(wpath, "actual>info.json"), "w"), indent=3)
+    json.dump(actualInfo, open(Path.actualInfo, "w"), indent=3)
 
 
 def main():

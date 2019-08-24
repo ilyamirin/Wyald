@@ -6,6 +6,7 @@ import xmltodict, json
 from colorama import Fore, Style
 
 from utils import makeJSONname, extractCategory
+from config import Extensions, Constants as const
 
 
 def xml2json(xmlPath, wpath=None, overwrite=False):
@@ -36,9 +37,9 @@ def xml2json(xmlPath, wpath=None, overwrite=False):
         subCategory = f"{image['@category']}" if '@category' in image else ""
 
         jsonData[f"frame_{imgIdx}"] = {
-            "category": category,
-            "subcategory": subCategory,
-            "coords": [y1, x1, y2, x2]
+            const.category: category,
+            const.subcategory: subCategory,
+            const.coords: [y1, x1, y2, x2]
         }
 
     if wpath is not None:
@@ -56,7 +57,7 @@ def xml2json(xmlPath, wpath=None, overwrite=False):
 
 def xml2jsonFromFolder(rpath, wpath, overwrite=False):
     filenames = os.listdir(rpath)
-    filenames = [name for name in filenames if name.endswith(".xml")]
+    filenames = [name for name in filenames if name.endswith(Extensions.xml)]
 
     for filename in filenames:
         xml2json(
