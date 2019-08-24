@@ -129,11 +129,11 @@ def crossMatchVideoAndMarks(marks, videos):
     return videos, marks
 
 
-def actualizeInfoWithFrames(framesPath, wpath):
+def actualizeInfoWithFrames(framesPath):
     actualInfo = {}
-    os.makedirs(wpath, exist_ok=True)
+    os.makedirs(os.path.dirname(Path.actualInfo), exist_ok=True)
 
-    frames = walk(framesPath, targetDir=const.frames)
+    frames = walk(framesPath, targetDirs=const.frames)
     frames = frames.get("dirs")
 
     for idx, framesDir in enumerate(frames):
@@ -154,11 +154,11 @@ def actualizeInfoWithFrames(framesPath, wpath):
     json.dump(actualInfo, open(Path.actualInfo, "w"), indent=3)
 
 
-def actualizeInfoWithJsons(framesPath, wpath):
+def actualizeInfoWithJsons(framesPath):
     actualInfo = {}
-    os.makedirs(wpath, exist_ok=True)
+    os.makedirs(os.path.dirname(Path.actualInfo), exist_ok=True)
 
-    frames = walk(framesPath, targetDir=const.frames)
+    frames = walk(framesPath, targetDirs=const.frames)
     frames = frames.get("dirs")
 
     for idx, framesDir in enumerate(frames):
