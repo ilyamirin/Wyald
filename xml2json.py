@@ -69,7 +69,7 @@ def xml2jsonFromFolder(rpath, wpath, overwrite=False):
 def makeArgumentsParser():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--rpath", help="Path ro folder with xml-files which should be converted")
+    parser.add_argument("--rpath", help="Path to folder with xml-files which should be converted")
     parser.add_argument("--wpath", help="Path to folder where json-files will be written (overwritten)")
     parser.add_argument("--overwrite", help="Whether overwrite existing json-files", action="store_true")
 
