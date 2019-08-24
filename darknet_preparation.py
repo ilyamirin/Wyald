@@ -3,7 +3,7 @@ import json
 
 from colorama import Fore, Style
 
-from utils import extractBasename, extractCategory, walk, permutate, clean, makeJSONname, extendName
+from utils import walk, permutate, clean, makeJSONname, extendName, readLines, writeLines, matchLists, changeExtension
 from config import Extensions, Path, Constants as const
 
 
@@ -44,8 +44,63 @@ def extractMarks(framesDir):
 
         print("\r{:.1f}% of work has been done".format(frameIdx + 1 / len(marks) * 100), end="")
 
-    
-def makeSets():
+
+def makeSets(directories, trainPart=0.8, validPart=0.2, ignoreOld=False):
+    assert 0 < trainPart + validPart <= 1
+
+    testPart = 1 - trainPart - validPart
+
+    sets = {
+        const.train: {
+            "path": os.path.join(Path.sets, extendName(const.train, Extensions.txt)),
+            "part": trainPart,
+            "content": []
+        },
+        const.valid: {
+            "path": os.path.join(Path.sets, extendName(const.valid, Extensions.txt)),
+            "part": validPart,
+            "content": []
+        },
+        const.test: {
+            "path": os.path.join(Path.sets, extendName(const.test, Extensions.txt)),
+            "part": testPart,
+            "content": []
+        }
+    }
+
+    inUse = []
+    for set_, info in sets.items():
+        info["content"] = readLines(info["path"]) if not ignoreOld else []
+        inUse.extend(info["content"])
+
+    images = []
+    marks = []
+    for path in directories:
+        images.extend(walk(path, targetExtensions=Extensions.images).get("files"))
+        marks.extend(walk(path, targetExtensions=Extensions.txt).get("files"))
+
+    transformer = lambda x: changeExtension(x, Extensions.txt)
+    images = matchLists(master=marks, slave=images, transformer=transformer)
+    _, images = matchLists(master=inUse, slave=images, getMismatched=True)
+
+    images = permutate(images)
+
+    start = 0
+    for set_, info in sets:
+        part = info["part"]
+        end = start + int(part * len(images))
+
+        total = end - start
+
+        info["content"].extend(images[start:end])
+        start = end
+
+        writeLines(lines=info["content"], path=info["path"])
+
+        print(f"\n{Fore.GREEN} Added {total} paths to {set_} {Style.RESET_ALL}")
+
+
+def updateSets():
     pass
 
 
