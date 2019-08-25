@@ -132,7 +132,6 @@ def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, datase
 
         processedVideos.append(video)
 
-    print("\nActualizing info...")
     writeLines(processedVideos, Path.processedFiles)
     actualizeInfoWithFrames(Path.dataset)
 

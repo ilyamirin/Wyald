@@ -9,22 +9,23 @@ from config import Extensions, Path, Constants as const
 
 def cleanOldMarks(path):
     print("Cleaning old darknet marks")
-    clean(path, targetExtensions=Extensions.txt)
+    clean(path, targetExtensions=Extensions.txt, through=True)
 
 
 def extractMarks(categoryDir):
     marksPath = os.path.join(categoryDir, makeJSONname(const.marks))
+    framesDir = os.path.join(categoryDir, const.frames)
 
     try:
         marks = json.load(open(marksPath, "r"))
     except FileNotFoundError:
         return
 
-    print(f"{Fore.GREEN}Processing {marksPath} {Style.RESET_ALL}")
+    print(f"\n{Fore.GREEN}Processing {marksPath} {Style.RESET_ALL}")
 
     for frameIdx, frameName in enumerate(marks):
         frameMarks = marks[frameName]
-        framePath = os.path.join(categoryDir, frameMarks[const.image])
+        framePath = os.path.join(framesDir, frameMarks[const.image])
 
         if not os.path.exists(framePath):
             continue
@@ -36,17 +37,17 @@ def extractMarks(categoryDir):
         xc = (x2 + x1) / (2 * w)
         yc = (y2 - y1) / (2 * h)
         bw = (x2 - x1) / w
-        bh = y2 - y1 / h
+        bh = (y2 - y1) / h
 
         darknetString = f"{ctgIdx} {xc} {yc} {bw} {bh}\n"
 
-        if bh < 10 or bw < 10: # грубая проверка на адекватность разметки
+        if bh < 0.05 or bw < 0.05: # грубая проверка на адекватность разметки
             darknetString = ""
 
-        with open(os.path.join(categoryDir, extendName(frameName, Extensions.txt)), "w") as f:
+        with open(os.path.join(framesDir, extendName(frameName, Extensions.txt)), "w") as f:
             f.write(darknetString)
 
-        print("\r{:.1f}% of work has been done".format(frameIdx + 1 / len(marks) * 100), end="")
+        print("\r{:.1f}% of work has been done".format((frameIdx + 1) / len(marks) * 100), end="")
 
 
 def extractMarksThroughDataset(datasetPath):
@@ -62,6 +63,7 @@ def extractMarksThroughDataset(datasetPath):
 
 def makeSets(directories, trainPart=0.8, validPart=0.2, ignoreOld=False):
     assert 0 < trainPart + validPart <= 1
+    os.makedirs(Path.sets, exist_ok=True)
 
     testPart = 1 - trainPart - validPart
 
@@ -91,8 +93,10 @@ def makeSets(directories, trainPart=0.8, validPart=0.2, ignoreOld=False):
     images = []
     marks = []
     for path in directories:
-        images.extend(walk(path, targetExtensions=Extensions.images()).get("files"))
-        marks.extend(walk(path, targetExtensions=Extensions.txt).get("files"))
+        dirImages = [os.path.join(path, *img) for img in walk(path, targetExtensions=Extensions.images()).get("extensions")]
+        images.extend(dirImages)
+        dirMarks = [os.path.join(path, *mrk) for mrk in walk(path, targetExtensions=Extensions.txt).get("extensions")]
+        marks.extend(dirMarks)
 
     transformer = lambda x: changeExtension(x, Extensions.txt)
     images = matchLists(master=marks, slave=images, transformer=transformer)
@@ -101,7 +105,7 @@ def makeSets(directories, trainPart=0.8, validPart=0.2, ignoreOld=False):
     images = permutate(images)
 
     start = 0
-    for set_, info in sets:
+    for set_, info in sets.items():
         part = info["part"]
         end = start + int(part * len(images))
 
@@ -111,7 +115,7 @@ def makeSets(directories, trainPart=0.8, validPart=0.2, ignoreOld=False):
         start = end
 
         writeLines(lines=info["content"], path=info["path"])
-        print(f"\n{Fore.GREEN} Added {total} paths to {set_} {Style.RESET_ALL}")
+        print(f"\n{Fore.GREEN}Added {total} paths to {set_} {Style.RESET_ALL}")
 
 
 def purifySets():

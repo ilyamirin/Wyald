@@ -215,7 +215,7 @@ def clean(path, through=False, targetFiles:tuple=None, targetExtensions:tuple=No
         filesList.extend(files.get("files", []))
         filesList.extend(files.get("extensions", []))
 
-        files = [os.path.join([files.get("root")] + f) for f in filesList]
+        files = [os.path.join(files.get("root"), *f) for f in filesList]
     else:
         files = listFilesFromDir(path, targetFiles=targetFiles, targetExtensions=targetExtensions)
         files = [os.path.join(path, f) for f in files]

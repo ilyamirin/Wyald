@@ -156,6 +156,7 @@ def crossMatchVideoAndMarks(marks, videos):
 
 
 def actualizeInfoWithFrames(datasetPath):
+    print("\nActualizing info...")
     actualInfo = {}
     os.makedirs(os.path.dirname(Path.actualInfo), exist_ok=True)
 
@@ -179,6 +180,7 @@ def actualizeInfoWithFrames(datasetPath):
 
 
 def actualizeInfoWithJsons(datasetPath):
+    print("\nActualizing info...")
     actualInfo = {}
     os.makedirs(os.path.dirname(Path.actualInfo), exist_ok=True)
 
@@ -201,8 +203,41 @@ def actualizeInfoWithJsons(datasetPath):
     json.dump(actualInfo, open(Path.actualInfo, "w"), indent=3)
 
 
+def visualizeMarks(marksPath, userInput=False):
+    import cv2
+
+    def showResult(imagePath, box):
+        image = cv2.imread(imagePath)
+        y1, x1, y2, x2 = box
+
+        cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0))
+        cv2.imshow("image", image)
+        cv2.waitKey(0)
+
+    marks = openJsonSafely(marksPath)
+    framesPath = os.path.join(os.path.dirname(marksPath), const.frames)
+
+    show = True
+    while show:
+        if userInput:
+            framePath = input()
+            frame = extractBasename(framePath)
+            box = marks[frame][const.coords]
+            showResult(framePath, box)
+
+        else:
+            for frame in marks:
+                frameName = marks[frame][const.image]
+                box = marks[frame][const.coords]
+                framePath = os.path.join(framesPath, frameName)
+                showResult(framePath, box)
+
+
 def main():
-    pass
+    visualizeMarks(
+        marksPath=r"D:\Projects\coins-project\data\test_dataset\dataset\original\BELYY_MEDVED_2012\avers\marks.json",
+        userInput=False
+    )
 
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@ import os
 import json
 import random
 
+from multiprocessing import Process
+
 import cv2
 import numpy as np
 
@@ -193,7 +195,8 @@ def augmentationGenerator(framesPath, marks, augmentations, number):
 def augmentCategoryWithGenerator(categoryPath, fullCategory, augmentPath, augmentations, augmentationsNumber,
                                  extension=Extensions.png, params=None):
 
-    print(f"Category {fullCategory} is being augmented")
+    augmentations = createAugmenter() if augmentations is None else augmentations # хардкод для запуска мультипроцессинга
+    # print(f"Category {fullCategory} is being augmented")
     if augmentationsNumber == 0:
         print(f"{Fore.RED}No augmentations for {categoryPath}{Style.RESET_ALL}")
         return
@@ -217,7 +220,7 @@ def augmentCategoryWithGenerator(categoryPath, fullCategory, augmentPath, augmen
 
     augmentedMarks = {}
     for i, aug in enumerate(augGenerator):
-        print(f"\rFrame {i} out of {augmentationsNumber} is ready", end="")
+        print(f"\r{fullCategory} frame {i} out of {augmentationsNumber} is ready", end="")
 
         augFrame, augFrameData = aug
 
@@ -230,11 +233,11 @@ def augmentCategoryWithGenerator(categoryPath, fullCategory, augmentPath, augmen
 
     print()
     json.dump(augmentedMarks, open(os.path.join(augmentedCategoryPath, marksName), "w"), indent=3)
-    print(f"{Fore.GREEN}Category {fullCategory} has been successfully augmented. "
+    print(f"\n{Fore.GREEN}Category {fullCategory} has been successfully augmented. "
           f"Results in {augmentedCategoryPath} {Style.RESET_ALL}")
 
 
-def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension, multiplier, params=None):
+def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension, multiplier, params=None, parallel=False):
     actualInfo = downloadActualInfo().get(const.original, {})
 
     target = getTargetCount(actualInfo, targetType="max") # вообще не самый хороший выбор
@@ -242,6 +245,7 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
     path = os.path.join(Path.dataset, const.original)
     keys = walk(path, targetDirs=const.frames).get("dirs")
 
+    processes = []
     for set_ in keys:
         set_ = set_[:-1]
         count = getNested(dictionary=actualInfo, keys=set_, default=0)
@@ -255,15 +259,31 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
 
         number = int(multiplier * target) - count
 
-        augmentCategoryWithGenerator(
-            categoryPath=categoryPath,
-            fullCategory=getFullCategory(category, subcategory),
-            augmentPath=os.path.join(Path.dataset, augmentationName),
-            augmentations=augmentations,
-            augmentationsNumber=number,
-            extension=imageExtension,
-            params=params
-        )
+        fullCategory = getFullCategory(category, subcategory)
+        augmentPath = os.path.join(Path.dataset, augmentationName)
+
+        if parallel:
+            proc = Process(target=augmentCategoryWithGenerator,
+                           args=(categoryPath, fullCategory, augmentPath, None, number),
+                           kwargs={"extension": imageExtension, "params":params})
+            processes.append(proc)
+
+        else:
+            augmentCategoryWithGenerator(
+                categoryPath=categoryPath,
+                fullCategory=fullCategory,
+                augmentPath=augmentPath,
+                augmentations=augmentations,
+                augmentationsNumber=number,
+                extension=imageExtension,
+                params=params
+            )
+
+    if parallel:
+        for proc in processes:
+            proc.start()
+        for proc in processes:
+            proc.join()
 
 
 def createAugmenter():
@@ -273,8 +293,8 @@ def createAugmenter():
             iaa.Sometimes(0.5, iaa.MotionBlur(20, random.randint(0, 360))),
             iaa.Sometimes(0.5, iaa.AdditiveGaussianNoise(scale=(10, 60))),
             iaa.Sometimes(0.5, iaa.AllChannelsCLAHE(clip_limit=5)),
-            iaa.Sometimes(0.5, iaa.Affine(scale={"x": (1.0, 1.35), "y": (1.0, 1.35)})),
-            iaa.Affine(rotate=(0, 360))
+            iaa.Sometimes(0.5, iaa.Affine(scale={"x": (1.0, 1.2), "y": (1.0, 1.2)})),
+            # iaa.Affine(rotate=(0, 360))
         ], random_order=True
     )
 
