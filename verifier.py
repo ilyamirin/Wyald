@@ -167,7 +167,7 @@ def actualizeInfoWithFrames(datasetPath):
         dirsList = dirsList[:-1]
 
         fullpath = os.path.join(datasetPath, *dirsList)
-        images = walk(fullpath, targetExtensions=Extensions.images()).get("extensions")
+        images = walk(fullpath, targetExtensions=Extensions.images()).get("extensions") # TODO : некоторые картинки могут не содержать категории
 
         putNested(dictionary=actualInfo, keys=dirsList, value=len(images))
         dirsList[-1] = const.overall

@@ -26,8 +26,8 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
     marksSeparated = {}
     total = 0
     for idx, frame in enumerate(framesGenerator):
-        if idx == 20:
-            break
+        # if idx == 20:
+        #     break
         frameID = f"frame_{idx}"
         if frameID not in marks:
             continue
@@ -69,7 +69,7 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
             const.imageShape: frame.shape[:2]
         }
 
-        keySet = countKeys + [frameName]
+        keySet = countKeys + [frameName] # ["original", category, subcategory, frameName]
         putNested(dictionary=marksSeparated, keys=keySet, value=frameInfo)
 
         cv2.imwrite(framePath, frame, params)

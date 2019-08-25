@@ -186,7 +186,7 @@ def walk(path, targetDirs:(tuple, str)=None, targetFiles:(tuple, str)=None, targ
 
 
 def listFilesFromDir(path, targetFiles:tuple=None, targetExtensions:tuple=None):
-    targetFiles = () if targetFiles is not None else targetFiles
+    targetFiles = () if targetFiles is None else targetFiles
     targetExtensions = () if targetExtensions is None else targetExtensions
 
     files = os.listdir(path)
