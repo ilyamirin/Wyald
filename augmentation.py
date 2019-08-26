@@ -14,7 +14,8 @@ from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 from verifier import downloadActualInfo, getFullCategory, splitFullCategory, fitCoords
 from utils import extendName, makeJSONname, walk, getNested, openJsonSafely
 from config import Extensions, Path, Constants as const
-
+from augmentations_kit import customAugmentations
+from filters import cartoonizeImage
 
 def makeBoxesPretty(augBoxes):
     prettyBbs = []
@@ -40,14 +41,8 @@ def augmentImageRepeated(image, augmentations, repeats=1, boxes=None):
     return images if boxes is None else zip(images, prettyBbs)
 
 
-def augmentImageSingle(image, box, augmentations):
-    y1, x1, y2, x2 = box
-    bb = BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2)
-
-    augImage, augBox = augmentations(image=image, bounding_boxes=bb)
-
-    augBox = fitCoords([augBox.y1_int, augBox.x1_int, augBox.y2_int, augBox.x2_int], augImage.shape[:2])
-
+def applyAugmentations(image, box, augmentations):
+    augImage, augBox = augmentations(image, box)
     return augImage, augBox
 
 
@@ -178,7 +173,7 @@ def augmentationGenerator(framesPath, marks, augmentations, number):
 
         frame = cv2.imread(os.path.join(framesPath, frameName))
 
-        augFrame, augBox = augmentImageSingle(frame, box, augmentations)
+        augFrame, augBox = applyAugmentations(frame, box, augmentations)
 
         augmentedName = f"{fullCategory}{const.separator}{frameID}_{idx}{const.separator}{const.augmented}"
         augFrameData = {
@@ -195,7 +190,7 @@ def augmentationGenerator(framesPath, marks, augmentations, number):
 def augmentCategoryWithGenerator(categoryPath, fullCategory, augmentPath, augmentations, augmentationsNumber,
                                  extension=Extensions.png, params=None):
 
-    augmentations = createAugmenter() if augmentations is None else augmentations # хардкод для запуска мультипроцессинга
+    augmentations = customAugmentations if augmentations is None else augmentations # хардкод для запуска мультипроцессинга
     # print(f"Category {fullCategory} is being augmented")
     if augmentationsNumber == 0:
         print(f"{Fore.RED}No augmentations for {categoryPath}{Style.RESET_ALL}")
@@ -284,21 +279,6 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
             proc.start()
         for proc in processes:
             proc.join()
-
-
-def createAugmenter():
-    aug = iaa.Sequential(
-        [
-            iaa.Sometimes(0.5, iaa.Crop(percent=(0.1, 0.3), keep_size=False)),
-            iaa.Sometimes(0.5, iaa.MotionBlur(20, random.randint(0, 360))),
-            iaa.Sometimes(0.5, iaa.AdditiveGaussianNoise(scale=(10, 60))),
-            iaa.Sometimes(0.5, iaa.AllChannelsCLAHE(clip_limit=5)),
-            iaa.Sometimes(0.5, iaa.Affine(scale={"x": (1.0, 1.2), "y": (1.0, 1.2)})),
-            # iaa.Affine(rotate=(0, 360))
-        ], random_order=True
-    )
-
-    return aug
 
 
 def main():
