@@ -111,8 +111,8 @@ def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, datase
                        extension=Extensions.png, params=None):
 
     processedVideos = readLines(Path.processedFiles)
-    videos = [video for video in os.listdir(folderPath) if video.endswith(Extensions.mov)
-              and video not in processedVideos]
+    videos = [video for video in os.listdir(folderPath) if video not in processedVideos and
+              (video.endswith(Extensions.mov) or video.endswith(Extensions.mp4))]
 
     actualInfo = downloadActualInfo()
 
