@@ -35,7 +35,7 @@ def extractMarks(categoryDir):
         h, w = frameMarks[const.imageShape]
 
         xc = (x2 + x1) / (2 * w)
-        yc = (y2 - y1) / (2 * h)
+        yc = (y2 + y1) / (2 * h)
         bw = (x2 - x1) / w
         bh = (y2 - y1) / h
 
