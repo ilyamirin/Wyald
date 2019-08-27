@@ -2,8 +2,7 @@ import os
 import json
 import random
 
-from multiprocessing import Process
-
+import multiprocessing as mp
 import cv2
 import numpy as np
 
@@ -189,6 +188,8 @@ def augmentationGenerator(framesPath, marks, augmentations, number):
 
 def augmentCategoryWithGenerator(categoryPath, fullCategory, augmentPath, augmentations, augmentationsNumber,
                                  extension=Extensions.png, params=None):
+    print('category: {:>50} \t process_id: {:>10} \t process_name: {}'.format(fullCategory, os.getpid(), mp.current_process()))
+    time.sleep(0.5)
 
     augmentations = customAugmentations if augmentations is None else augmentations # хардкод для запуска мультипроцессинга
     # print(f"Category {fullCategory} is being augmented")
@@ -215,7 +216,7 @@ def augmentCategoryWithGenerator(categoryPath, fullCategory, augmentPath, augmen
 
     augmentedMarks = {}
     for i, aug in enumerate(augGenerator):
-        print(f"\r{fullCategory} frame {i} out of {augmentationsNumber} is ready", end="")
+        print("\r{} {:.1f} is ready".format(fullCategory, i/augmentationsNumber*100), end="")
 
         augFrame, augFrameData = aug
 
@@ -240,7 +241,12 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
     path = os.path.join(Path.dataset, const.original)
     keys = walk(path, targetDirs=const.frames).get("dirs")
 
+    nCPU = mp.cpu_count()
+    cpu = 0
     processes = []
+    for i in range(0, nCPU):
+        processes.append([])
+
     for set_ in keys:
         set_ = set_[:-1]
         count = getNested(dictionary=actualInfo, keys=set_, default=0)
@@ -258,10 +264,11 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
         augmentPath = os.path.join(Path.dataset, augmentationName)
 
         if parallel:
-            proc = Process(target=augmentCategoryWithGenerator,
+            proc = mp.Process(target=augmentCategoryWithGenerator,
                            args=(categoryPath, fullCategory, augmentPath, None, number),
-                           kwargs={"extension": imageExtension, "params":params})
-            processes.append(proc)
+                           kwargs={"extension": imageExtension, "params": params})
+            processes[cpu].append(proc)
+            cpu = (cpu + 1) % nCPU
 
         else:
             augmentCategoryWithGenerator(
@@ -275,10 +282,13 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
             )
 
     if parallel:
-        for proc in processes:
-            proc.start()
-        for proc in processes:
-            proc.join()
+        for i in range(0, len(processes[0])):
+            for cpu in range(0, nCPU):
+                if i == 0 or not processes[cpu][i - 1].is_alive():
+                    processes[cpu][i].start()
+            for cpu in range(0, nCPU):
+                if i == 0 or not processes[cpu][i - 1].is_alive():
+                    processes[cpu][i].join()
 
 
 def main():
