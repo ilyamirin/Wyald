@@ -6,6 +6,7 @@ class Extensions:
     xml = ".xml"
     txt = ".txt"
     mov = ".MOV"
+    mp4 = ".mp4"
     jpg = ".jpg"
     png = ".png"
     jpeg = ".jpeg"
