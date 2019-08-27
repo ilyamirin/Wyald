@@ -48,6 +48,17 @@ def test():
     extractMarksThroughDataset(Path.dataset)
     makeSets([Path.dataset])
 
+def prettifyNames(path):
+    import os
+    for filename in os.listdir(path):
+        s = filename.replace("-", "_")
+        pos = s.rfind('_')
+        s = list(s)
+        s[pos] = '-'
+        newName = "".join(s)
+        os.rename(os.path.join(path, filename), os.path.join(path, newName))
+
+
 
 def main():
 
