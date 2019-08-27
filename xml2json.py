@@ -59,8 +59,7 @@ def xml2json(xmlPath, wpath=None, overwrite=False):
 
 
 def xml2jsonFromFolder(rpath, wpath, overwrite=False):
-    filenames = os.listdir(rpath)
-    filenames = [name for name in filenames if name.endswith(Extensions.xml)]
+    filenames = [name for name in os.listdir(rpath) if name.endswith(Extensions.xml)]
 
     for filename in filenames:
         xml2json(
