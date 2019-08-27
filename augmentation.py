@@ -284,10 +284,10 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
     if parallel:
         for i in range(0, len(processes[0])):
             for cpu in range(0, nCPU):
-                if i == 0 or not processes[cpu][i - 1].is_alive():
+                if i == 0 or (len(processes[cpu]) > i and not processes[cpu][i - 1].is_alive()):
                     processes[cpu][i].start()
             for cpu in range(0, nCPU):
-                if i == 0 or not processes[cpu][i - 1].is_alive():
+                if i == 0 or (len(processes[cpu]) > i and not processes[cpu][i - 1].is_alive()):
                     processes[cpu][i].join()
 
 
