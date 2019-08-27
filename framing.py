@@ -10,6 +10,27 @@ from utils import makeJSONname, openJsonSafely, extractBasename, extendName, rea
 from config import Extensions, Path, Constants as const
 
 
+def getKeysOffset(keys):
+    keys = list(keys)
+    keys = sorted([int(l.split("_")[-1]) for l in keys]) # key == "frame_{idx}"
+
+    return keys[0]
+
+
+def getFrameMarks(idx, marks, offset):
+    frameID = f"frame_{idx}"
+
+    if frameID not in marks:
+        print(f"\n{frameID} was not found, trying with offset")
+        frameID = "frame_{}".format(idx + offset)
+
+    if frameID not in marks:
+        print(f"{frameID} was not found, continuing")
+        return {}
+    else:
+        return marks[frameID]
+
+
 def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, extension=Extensions.png, params=None):
     categories = readLines(Path.categories)
     basename = extractBasename(filePath)
@@ -22,17 +43,16 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
         return
 
     framesGenerator = generateFrames(filePath)
-
+    offset = getKeysOffset(marks.keys())
     marksSeparated = {}
     total = 0
     for idx, frame in enumerate(framesGenerator):
         # if idx == 20:
         #     break
-        frameID = f"frame_{idx}"
-        if frameID not in marks:
+
+        frameMarks = getFrameMarks(idx, marks, offset)
+        if not frameMarks:
             continue
-        else:
-            frameMarks = marks[frameID]
 
         category = frameMarks[const.category]
         subcategory = frameMarks[const.subcategory]
@@ -117,6 +137,7 @@ def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, datase
     actualInfo = downloadActualInfo()
 
     for video in videos:
+        actualizeInfoWithFrames(Path.dataset)
         filePath = os.path.join(folderPath, video)
 
         print(f"\n{Fore.GREEN}Video {filePath} is being processed {Style.RESET_ALL}")
@@ -132,8 +153,7 @@ def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, datase
 
         processedVideos.append(video)
 
-    writeLines(processedVideos, Path.processedFiles)
-    actualizeInfoWithFrames(Path.dataset)
+        writeLines(set(processedVideos), Path.processedFiles)
 
 
 def main():
