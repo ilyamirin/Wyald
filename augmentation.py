@@ -234,7 +234,7 @@ def augmentCategoryWithGenerator(categoryPath, fullCategory, augmentPath, augmen
           f"Results in {augmentedCategoryPath} {Style.RESET_ALL}")
 
 
-def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension, multiplier, params=None, parallel=False):
+def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension, multiplier, overwrite=False, params=None, parallel=False):
     actualInfo = downloadActualInfo().get(const.original, {})
 
     target = getTargetCount(actualInfo, targetType="max") # вообще не самый хороший выбор
@@ -264,6 +264,8 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
         fullCategory = getFullCategory(category, subcategory)
         augmentPath = os.path.join(Path.dataset, augmentationName)
 
+        if not overwrite and os.path.exists(os.path.join(augmentPath, category)):
+            continue
         if parallel:
             proc = mp.Process(target=augmentCategoryWithGenerator,
                            args=(categoryPath, fullCategory, augmentPath, None, number),
