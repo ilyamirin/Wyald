@@ -59,7 +59,24 @@ def prettifyNames(path):
         os.rename(os.path.join(path, filename), os.path.join(path, newName))
 
 
+def check(augList):
+    with open(Path.actualInfo) as f:
+        info = json.load(f)
 
+    for coinName in info["original"].keys():
+        aSum, rSum, mSum = 0, 0, 0
+        for aug in augList:
+            if not aug in info or not coinName in info[aug]:
+                continue
+            if 'avers' in info[aug][coinName]:
+                aSum += info[aug][coinName]['avers']
+            if 'reverse' in info[aug][coinName]:
+                rSum += info[aug][coinName]['reverse']
+            if 'revers' in info[aug][coinName]:
+                rSum += info[aug][coinName]['revers']
+            if 'merged' in info[aug][coinName]:
+                mSum += info[aug][coinName]['merged']
+        print("{:>50} : {:>10} {:>10} {:>10}".format(coinName, aSum, rSum, mSum))
 def main():
 
     try:
