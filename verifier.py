@@ -212,7 +212,7 @@ def visualizeMarks(marksPath, userInput=False):
 
         cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0))
         cv2.imshow("image", image)
-        cv2.waitKey(0)
+        cv2.waitKey(1)
 
     marks = openJsonSafely(marksPath)
     framesPath = os.path.join(os.path.dirname(marksPath), const.frames)
@@ -224,7 +224,6 @@ def visualizeMarks(marksPath, userInput=False):
             frame = extractBasename(framePath)
             box = marks[frame][const.coords]
             showResult(framePath, box)
-
         else:
             for frame in marks:
                 frameName = marks[frame][const.image]
@@ -235,7 +234,7 @@ def visualizeMarks(marksPath, userInput=False):
 
 def main():
     visualizeMarks(
-        marksPath=r"D:\Projects\coins-project\data\test_dataset\dataset\original\BELYY_MEDVED_2012\avers\marks.json",
+        marksPath=r"D:\projects\coins\test_data\dataset\original\two-rubles\revers\marks.json",
         userInput=False
     )
 

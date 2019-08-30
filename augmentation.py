@@ -46,7 +46,7 @@ def applyAugmentations(image, box, augmentations):
     return augImage, augBox
 
 
-def augmentCategoryWithRepeats(categoryPath, fullCategory, augmentPath, augmentations, extension=Extensions.png,
+def augmentCategoryWithRepeats(categoryPath, fullCategory, augmentPath, augmentations, extension=Extensions.jpg,
                                repeats=1, params=None):
 
     print(f"Category {fullCategory} is being augmented")
@@ -188,7 +188,7 @@ def augmentationGenerator(framesPath, marks, augmentations, number):
 
 
 def augmentCategoryWithGenerator(categoryPath, fullCategory, augmentPath, augmentations, augmentationsNumber,
-                                 extension=Extensions.png, params=None):
+                                 extension=Extensions.jpg, params=None):
     print('category: {:>50} \t process_id: {:>10} \t process_name: {}'.format(fullCategory, os.getpid(), mp.current_process()))
     time.sleep(0.5)
 
@@ -242,7 +242,7 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
     path = os.path.join(Path.dataset, const.original)
     keys = walk(path, targetDirs=const.frames).get("dirs")
 
-    nCPU = mp.cpu_count()
+    nCPU = 8 # int(mp.cpu_count()/4)
     cpu = 0
     processes = []
     for i in range(0, nCPU):
@@ -260,12 +260,12 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
             continue
 
         number = int(multiplier * target) - count
-
         fullCategory = getFullCategory(category, subcategory)
         augmentPath = os.path.join(Path.dataset, augmentationName)
 
         if not overwrite and os.path.exists(os.path.join(augmentPath, category)):
             continue
+
         if parallel:
             proc = mp.Process(target=augmentCategoryWithGenerator,
                            args=(categoryPath, fullCategory, augmentPath, None, number),
@@ -295,7 +295,8 @@ def augmentDatasetWithGenerator(augmentationName, augmentations, imageExtension,
 
 
 def main():
-    pass
+    actualInfo = downloadActualInfo().get(const.original, {})
+    getTargetCount(actualInfo, targetType="max")
 
 
 if __name__ == "__main__":

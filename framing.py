@@ -5,7 +5,7 @@ import cv2
 
 from colorama import Fore, Style
 
-from verifier import actualizeInfoWithFrames, downloadActualInfo, getFullCategory, fitCoords
+from verifier import actualizeInfoWithFrames, downloadActualInfo, getFullCategory, fitCoords, splitFullCategory
 from utils import makeJSONname, openJsonSafely, extractBasename, extendName, readLines, writeLines, getNested, updateNested, putNested
 from config import Extensions, Path, Constants as const
 
@@ -31,7 +31,9 @@ def getFrameMarks(idx, marks, offset):
         return marks[frameID]
 
 
-def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, extension=Extensions.png, params=None):
+def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, extension=Extensions.jpg, params=None,
+               ctgLimit=None):
+
     categories = readLines(Path.categories)
     basename = extractBasename(filePath)
 
@@ -61,7 +63,11 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
         if idx == 0:
             globalIdx = getNested(dictionary=actualInfo, keys=countKeys, default=0)
 
-        frameID = f"frame_{idx + globalIdx}"
+        localIdx = idx + globalIdx
+        if ctgLimit is not None and localIdx == ctgLimit:
+            break
+
+        frameID = f"frame_{localIdx}"
         fullCategory = getFullCategory(category, subcategory)
 
         if fullCategory not in categories:
@@ -117,6 +123,38 @@ def frameVideo(filePath, marksPath, datasetPath, actualInfo, overwrite=False, ex
     print(f"{Fore.GREEN}Added {total} frames in total {Style.RESET_ALL}")
 
 
+def frameWithAugmentation(filePath, marksPath, datasetPath, actualInfo, overwrite=False, extension=Extensions.jpg,
+                          params=None, ctgLimit=None):
+    pass
+
+
+def getSameCtgVideo(categories, files):
+    filesDict = {}
+    for category in categories:
+        filesDict[category] = [f for f in files if category in f]
+
+    return filesDict
+
+
+def calcFrames(videosPath, videosDict):
+    for ctg, videosList in videosDict.items():
+        pass
+
+
+def frameFolderSmart(folderPath, ctgLimit):
+    processedVideos = readLines(Path.processedFiles)
+    fullCategories = readLines(Path.fullCategories)
+
+    videos = [video for video in os.listdir(folderPath) if video and video.endswith(Extensions.videos())]
+
+    videosByCtgs = getSameCtgVideo(fullCategories, videos)
+
+
+
+
+    pass
+
+
 def generateFrames(videoPath):
     cap = cv2.VideoCapture(videoPath)
     while cap.isOpened():
@@ -128,7 +166,7 @@ def generateFrames(videoPath):
 
 
 def processVideoFolder(folderPath=Path.rawVideos, marksPath=Path.rawJson, datasetPath=Path.dataset, overwrite=False,
-                       extension=Extensions.png, params=None):
+                       extension=Extensions.jpg, params=None):
 
     processedVideos = readLines(Path.processedFiles)
     videos = [video for video in os.listdir(folderPath) if video not in processedVideos and

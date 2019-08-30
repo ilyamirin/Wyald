@@ -35,7 +35,7 @@ def processFile(videoSource, videoDir, coinDir, detector):
         for k, d in enumerate(dets):
             imgData["category"] = videoSource[:-7]
             imgData["coords"] = [d.top(), d.left(), d.bottom(), d.right()]
-            cv2.imwrite(os.path.join(path, fname), frame)
+            # cv2.imwrite(os.path.join(path, fname), frame)
 
         if imgData != {}:
             res[os.path.join(coinDir, fname)] = imgData
