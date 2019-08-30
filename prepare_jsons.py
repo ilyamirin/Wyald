@@ -35,7 +35,7 @@ def getVideoMarks(videoPath, marksPath):
     return marksSeparated
 
 
-def summarizeInfo(rawPath: Path.raw, summarizedPath: Path.summarizedRaw):
+def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw):
     summarized = openJsonSafely(summarizedPath)
 
     rawVideosPath = os.path.join(rawPath, const.videos)
