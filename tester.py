@@ -53,6 +53,7 @@ def test():
     extractMarksThroughDataset(Path.dataset)
     makeSets([Path.dataset])
 
+
 def prettifyNames(path):
     import os
     for filename in os.listdir(path):
@@ -65,12 +66,22 @@ def prettifyNames(path):
 
 
 def check(augList):
+    import json
+    from collections import Counter
+
     with open(Path.actualInfo) as f:
         info = json.load(f)
 
+    mySum = {}
+    print("{:>50} : {:>10} {:>10} {:>10} {:>10} {:>10}".format("coin name", "original", "augmented", "avers", "revers", "merged"))
+
     for coinName in info["original"].keys():
         aSum, rSum, mSum = 0, 0, 0
+        counter = Counter()
+
         for aug in augList:
+            counter[aug] = info[aug][coinName]["overall"]
+
             if not aug in info or not coinName in info[aug]:
                 continue
             if 'avers' in info[aug][coinName]:
@@ -81,7 +92,10 @@ def check(augList):
                 rSum += info[aug][coinName]['revers']
             if 'merged' in info[aug][coinName]:
                 mSum += info[aug][coinName]['merged']
-        print("{:>50} : {:>10} {:>10} {:>10}".format(coinName, aSum, rSum, mSum))
+
+            mySum[coinName] = counter
+        print("{:>50} : {:>10} {:>10} {:>10} {:>10} {:>10}".
+              format(coinName, mySum[coinName]['original'], mySum[coinName]['augmented'], aSum, rSum, mSum))
 
 
 def main():
