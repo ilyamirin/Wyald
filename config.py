@@ -16,14 +16,16 @@ class Extensions:
 
     @staticmethod
     def images():
-        baseExtensions = [Extensions.jpg, Extensions.png, Extensions.jpeg]
-        return baseExtensions + [i.upper() for i in baseExtensions]
+        extensions = [Extensions.jpg, Extensions.png, Extensions.jpeg]
+        extendedExtensions = extensions + [i.upper() for i in extensions]
+        return tuple(extendedExtensions)
 
 
     @staticmethod
     def videos():
-        baseExtensions = [Extensions.mov, Extensions.mp4]
-        return baseExtensions + [i.upper() for i in baseExtensions]
+        extensions = [Extensions.mov, Extensions.mp4]
+        extendedExtensions = extensions + [i.upper() for i in extensions]
+        return tuple(extendedExtensions)
 
 
 class Constants:
