@@ -22,7 +22,7 @@ def getVideoMarks(videoPath, marksPath):
     try:
         marks = json.load(open(marksPath, "r"))
     except:
-        print(f"{Fore.RED}There is no json file {marksPath} for {videoPath} {Style.RESET_ALL}")
+        print(f"{Fore.RED}\nThere is no json file {marksPath} for {videoPath} {Style.RESET_ALL}")
         return {}
 
     marksSeparated = {}
@@ -102,7 +102,7 @@ def fixFrameNumbers(jsonPath):
             fixedMarks[newFrame] = info
 
         json.dump(fixedMarks, open(path, "w"), indent=3)
-        print(f"{Fore.GREEN}JSON file {path} has been fixed{Style.RESET_ALL}")
+        print(f"{Fore.BLUE}JSON file {path} has been fixed{Style.RESET_ALL}")
 
 
 def main():

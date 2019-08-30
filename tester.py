@@ -206,14 +206,14 @@ def smartTest():
         videosPath=Path.rawVideos,
         summarizedPath=Path.summarizedRaw,
         categoriesList=None,
-        subcategories=["avers", "reverse"],
+        subcategories=[const.avers, const.reverse],
         extractionPath=Path.original,
-        framesLimit=200,
-        augmentationsLimit=200,
+        framesLimit=2000,
+        augmentationsLimit=2000,
         augmentationFunc=const.default,
         augmentationName="augmented",
         augmentationPath=None,
-        parallel=True, threads=8,
+        parallel=True, threads=16,
         overwriteOriginal=False,
         overwriteAugmented=False
     )

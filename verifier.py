@@ -235,7 +235,7 @@ def visualizeMarks(marksPath, userInput=False):
 
         cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0))
         cv2.imshow("image", image)
-        cv2.waitKey(1)
+        cv2.waitKey(100)
 
     marks = openJsonSafely(marksPath)
     framesPath = os.path.join(os.path.dirname(marksPath), const.frames)

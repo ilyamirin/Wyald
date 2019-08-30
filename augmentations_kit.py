@@ -10,11 +10,17 @@ aug = iaa.Sequential(
         [
             iaa.Sometimes(0.5, iaa.Crop(percent=(0.1, 0.3), keep_size=False)),
             iaa.Sometimes(0.5, iaa.MotionBlur(20, random.randint(0, 360))),
-            iaa.Sometimes(0.5, iaa.AdditiveGaussianNoise(scale=(10, 60))),
-            iaa.Sometimes(0.5, iaa.AllChannelsCLAHE(clip_limit=5)),
-            iaa.Sometimes(0.5, iaa.Affine(scale={"x": (1.0, 1.2), "y": (1.0, 1.2)})),
+            iaa.FastSnowyLandscape(lightness_threshold=(50, 120), from_colorspace="BGR"),
+            iaa.OneOf([
+                iaa.AllChannelsCLAHE(clip_limit=10),
+                iaa.AdditiveGaussianNoise(scale=(10, 40)),
+                iaa.FastSnowyLandscape(lightness_threshold=(50, 130), from_colorspace="BGR")
+            ]),
+            # iaa.Sometimes(0.25, iaa.Affine(scale={"x": (1.0, 1.2), "y": (1.0, 1.2)})),
+            iaa.Sometimes(0.25, iaa.Multiply((0.8, 1.2))),
+            iaa.Sometimes(0.25, iaa.ContrastNormalization((0.85, 1.15))),
             # iaa.Affine(rotate=(0, 360))
-        ], random_order=True
+        ], random_order=False
     )
 
 
