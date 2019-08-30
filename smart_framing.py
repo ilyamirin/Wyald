@@ -4,6 +4,7 @@ import multiprocessing as mp
 
 import cv2
 
+from time import sleep
 from math import ceil
 from colorama import Fore, Style
 
@@ -88,8 +89,10 @@ def extract(ctg, ctgInfo, videosPath=Path.rawVideos, extractionPath=Path.origina
         totalAugs = 0
 
     fullCategory = getFullCategory(parent, ctg)
+    
     print("Cutting videos: \t {:>50} \t expected orig frames {:>10} \t expected aug frames {:>10} process id: {:>10}".
           format(fullCategory, min(limit, overall), augmentations, os.getpid()))
+    sleep(0.5)
 
     # time.sleep(0.5)
 
@@ -161,11 +164,10 @@ def extract(ctg, ctgInfo, videosPath=Path.rawVideos, extractionPath=Path.origina
 
 
 def extractCategories(videosPath=Path.rawVideos, summarizedPath=Path.summarizedRaw, categoriesList=None,
-                      framesLimit=None,
+                      extractionPath=Path.original, subcategories=None, framesLimit=None,
                       augmentationsLimit=None, augmentationFunc=None, augmentationName="augmented",
                       augmentationPath=None,
-                      extractionPath=Path.original, subcategories=None, parallel=True, threads=8,
-                      overwriteOriginal=False, overwriteAugmented=False):
+                      parallel=True, threads=8, overwriteOriginal=False, overwriteAugmented=False):
 
     summarized = openJsonSafely(summarizedPath)
 
@@ -204,7 +206,23 @@ def extractCategories(videosPath=Path.rawVideos, summarizedPath=Path.summarizedR
 
 
 def main():
-    pass
+    categories = []
+
+    extractCategories(
+        videosPath=Path.rawVideos,
+        summarizedPath=Path.summarizedRaw,
+        categoriesList=categories,
+        subcategories=None,
+        extractionPath=Path.original,
+        framesLimit=2000,
+        augmentationsLimit=2000,
+        augmentationFunc=const.default,
+        augmentationName="augmented",
+        augmentationPath=None,
+        parallel=True, threads=8,
+        overwriteOriginal=False,
+        overwriteAugmented=False
+    )
 
 
 if __name__ == "__main__":
