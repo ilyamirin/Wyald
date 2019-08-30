@@ -12,46 +12,46 @@ from config import Path, Extensions, Constants as const
 
 
 def test():
-    try:
-        actualizeInfoWithFrames(Path.dataset)
-    except:
-        pass
+    # try:
+    #     actualizeInfoWithFrames(Path.dataset)
+    # except:
+    #     pass
 
     xml2jsonFromFolder(
         rpath=Path.rawXml,
         wpath=Path.rawJson
     )
 
-    crossMatchVideoAndMarks(
-        marks=Path.rawJson,
-        videos=Path.rawVideos
-    )
+    # crossMatchVideoAndMarks(
+    #     marks=Path.rawJson,
+    #     videos=Path.rawVideos
+    # )
 
-    processVideoFolder(
-        folderPath=Path.rawVideos,
-        marksPath=Path.rawJson,
-        datasetPath=Path.dataset,
-        overwrite=False
-    )
+    # processVideoFolder(
+    #     folderPath=Path.rawVideos,
+    #     marksPath=Path.rawJson,
+    #     datasetPath=Path.dataset,
+    #     overwrite=False
+    # )
 
     # actualizeInfoWithFrames(Path.dataset)
 
-    augmentations = ak.cartoonAugs
-
-    augmentDatasetWithGenerator(
-        augmentationName="augmented",
-        augmentations=augmentations,
-        imageExtension=Extensions.jpg,
-        multiplier=2,
-        parallel=True
-    )
-
-    print()
-    actualizeInfoWithFrames(Path.dataset)
+    # augmentations = ak.cartoonAugs
     #
-
-    extractMarksThroughDataset(Path.dataset)
-    makeSets([Path.dataset])
+    # augmentDatasetWithGenerator(
+    #     augmentationName="augmented",
+    #     augmentations=augmentations,
+    #     imageExtension=Extensions.jpg,
+    #     multiplier=2,
+    #     parallel=True
+    # )
+    #
+    # print()
+    # actualizeInfoWithFrames(Path.dataset)
+    # #
+    #
+    # extractMarksThroughDataset(Path.dataset)
+    # makeSets([Path.dataset])
 
 
 def prettifyNames(path):
@@ -190,7 +190,34 @@ def makeDividedSets():
         writeLines(ctgList, os.path.join(setPath, "set_categories.txt"))
 
 
+def smartTest():
+    from prepare_jsons import fixFrameNumbers, summarizeInfo
+    from smart_framing import extractCategories
+
+    xml2jsonFromFolder(
+        rpath=Path.rawXml,
+        wpath=Path.rawJson
+    )
+
+    fixFrameNumbers(Path.rawJson)
+    summarizeInfo()
+
+    extractCategories(
+        videosPath=Path.rawVideos,
+        summarizedPath=Path.summarizedRaw,
+        categoriesList=None,
+        subcategories=["avers", "reverse"],
+        extractionPath=Path.original,
+        framesLimit=200,
+        augmentationsLimit=200,
+        augmentationFunc=const.default,
+        augmentationName="augmented",
+        augmentationPath=None,
+        parallel=True, threads=8,
+        overwriteOriginal=False,
+        overwriteAugmented=False
+    )
 
 
 if __name__ == "__main__":
-    makeDividedSets()
+    smartTest()

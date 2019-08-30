@@ -57,7 +57,7 @@ class Constants:
     augmented = "augmented"
 
     avers = "avers"
-    revers = "revers"
+    reverse = "reverse"
     overall = "overall"
     merged = "merged"
     parent = "parent"

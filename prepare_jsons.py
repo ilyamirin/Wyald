@@ -30,7 +30,7 @@ def getVideoMarks(videoPath, marksPath):
         subcategory = frameMarks[const.subcategory]
         coords = frameMarks[const.coords]
 
-        putNested(marksSeparated, [subcategory, frame], coords)
+        putNested(dictionary=marksSeparated, keys=[subcategory, frame], value=coords)
 
     return marksSeparated
 
@@ -45,7 +45,7 @@ def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw):
 
     maxIdx = summarized.get(const.maxIdx, 0)
     for i, video in enumerate(rawVideos):
-        print(f"\rProcessing {video} ({i + 1} out of {len(rawVideos)})")
+        print(f"\rProcessing {video} ({i + 1} out of {len(rawVideos)})", end="")
 
         category, name = extractCategory(video)
 
@@ -72,11 +72,13 @@ def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw):
                 curSubctgMarks[const.videos][video] = subctgMarks
                 curSubctgMarks[const.overall] += len(subctgMarks)
 
+            categoryInfo[subctg] = curSubctgMarks
+
         summarized[category] = categoryInfo
         summarized[const.maxIdx] = maxIdx
 
     json.dump(summarized, open(summarizedPath, "w"), indent=3)
-    print(f"{Fore.GREEN}Summarized info file {summarizedPath} has been updated{Style.RESET_ALL}")
+    print(f"\n{Fore.GREEN}Summarized info file {summarizedPath} has been updated{Style.RESET_ALL}")
 
 
 def fixFrameNumbers(jsonPath):
