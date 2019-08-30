@@ -44,8 +44,16 @@ def createGenerator(videosPath, videosInfo, overall, limit):
                 yield frame, globalFrameName, coords
 
 
-def augment():
-    pass
+def proxifyAugmentFunc(func):
+    if func == const.default:
+        from augmentations_kit import customAugmentations
+
+        return customAugmentations
+
+    elif callable(func):
+        return func
+    else:
+        raise RuntimeError
 
 
 def extract(ctg, ctgInfo, videosPath=Path.rawVideos, extractionPath=Path.original, extension=Extensions.jpg, limit=None,
@@ -63,6 +71,8 @@ def extract(ctg, ctgInfo, videosPath=Path.rawVideos, extractionPath=Path.origina
     limit = limit if limit is not None else overall
 
     if augmentFunc is not None:
+        augmentFunc = proxifyAugmentFunc(augmentFunc)
+
         augmentations = int(augmentations) if augmentations is not None else min(limit, overall)
         augmentations = max(augmentations, augmentations + limit - overall)
 

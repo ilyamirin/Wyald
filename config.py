@@ -68,6 +68,8 @@ class Constants:
     ctgIdx = "categoryIndex"
     imageShape = "shape"
 
+    default = "default"
+
 
 class Path:
     root = r"D:\projects\coins\test_data"
