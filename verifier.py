@@ -81,6 +81,29 @@
         }
     }
     ---------------------------------------------------------
+    summarized_raw_info.json structure:
+    ---------------------------------------------------------
+    {
+        "coin1": {
+            "avers": {
+                "videos": {
+                    "video1.mp4": {
+                        "frame_0": list,
+                        ...
+                        "frameX": list
+                    }, ...
+                },
+                "ctgIdx": int,
+                "overall": int
+            },
+            "revers": ...,
+            "merged": ...
+        },
+        ...
+        "coinN": ...
+        "maxIdx": idx
+    }
+    ---------------------------------------------------------
     Full frame names:
     ---------------------------------------------------------
         category_subcategory-frame_ID-{origin}

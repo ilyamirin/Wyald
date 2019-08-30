@@ -40,9 +40,12 @@ class Constants:
     xml = "xml"
 
     actualInfo = "actual_info"
+    summarizedRaw = "summarized_raw"
     processedFiles = "processed_files"
+    processedFrames = "processedFrames"
     categories = "categories"
     fullCategories = "fullCategories"
+    maxIdx = "maxIdx"
 
     train = "train"
     valid = "valid"
@@ -55,6 +58,7 @@ class Constants:
     revers = "revers"
     overall = "overall"
     merged = "merged"
+    parent = "parent"
 
     coords = "coordinates"
     image = "image"
@@ -68,15 +72,25 @@ class Constants:
 class Path:
     root = r"D:\projects\coins\test_data"
 
-    actualInfo = os.path.join(root, f"{Constants.actualInfo}{Extensions.json}")
-    processedFiles = os.path.join(root, f"{Constants.processedFiles}{Extensions.list_}")
+    dataset = os.path.join(root, Constants.dataset)
 
-    categories = os.path.join(root, f"{Constants.categories}{Extensions.names}")
-    fullCategories = os.path.join(root, f"{Constants.fullCategories}{Extensions.names}")
+    original = os.path.join(dataset, Constants.original)
+
+    raw = os.path.join(root, Constants.raw)
+    rawVideos = os.path.join(raw, Constants.videos)
+    rawJson = os.path.join(raw, Constants.json)
+    rawXml = os.path.join(raw, Constants.xml)
 
     sets = os.path.join(root, Constants.sets)
 
-    dataset = os.path.join(root, Constants.dataset)
-    rawVideos = os.path.join(root, Constants.raw, Constants.videos)
-    rawJson = os.path.join(root, Constants.raw, Constants.json)
-    rawXml = os.path.join(root, Constants.raw, Constants.xml)
+    summarizedRaw = os.path.join(root, f"{Constants.summarizedRaw}{Extensions.json}")
+    actualInfo = os.path.join(root, f"{Constants.actualInfo}{Extensions.json}")
+    processedFiles = os.path.join(root, f"{Constants.processedFiles}{Extensions.list_}")
+    processedFrames = os.path.join(root, f"{Constants.processedFrames}{Extensions.list_}")
+    categories = os.path.join(root, f"{Constants.categories}{Extensions.names}")
+    fullCategories = os.path.join(root, f"{Constants.fullCategories}{Extensions.names}")
+
+
+
+
+
