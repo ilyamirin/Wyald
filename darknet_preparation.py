@@ -73,6 +73,18 @@ def extractData(categoryDir):
     idx[0] += len(marks.keys()) + 1
 
 
+def checkBoundingBoxIsCorrect(xc, yc, w, h):
+    if w < 0.05 or h < 0.05:
+        return False
+
+    aspectRatio = w / h
+    k = 4.0
+    if aspectRatio < 1 / k or aspectRatio > k:
+        return False
+
+    return True
+
+
 def extractMarks(categoryDir):
     marksPath = os.path.join(categoryDir, makeJSONname(const.marks))
     framesDir = os.path.join(categoryDir, const.frames)
@@ -102,7 +114,7 @@ def extractMarks(categoryDir):
 
         darknetString = f"{ctgIdx} {xc} {yc} {bw} {bh}\n"
 
-        if bh < 0.05 or bw < 0.05: # грубая проверка на адекватность разметки
+        if not checkBoundingBoxIsCorrect(xc, yc, bw, bh):
             darknetString = ""
 
         with open(os.path.join(framesDir, extendName(frameName, Extensions.txt)), "w") as f:
