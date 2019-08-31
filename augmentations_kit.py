@@ -10,7 +10,6 @@ aug = iaa.Sequential(
         [
             iaa.Sometimes(0.5, iaa.Crop(percent=(0.1, 0.3), keep_size=False)),
             iaa.Sometimes(0.5, iaa.MotionBlur(20, random.randint(0, 360))),
-            iaa.FastSnowyLandscape(lightness_threshold=(50, 120), from_colorspace="BGR"),
             iaa.OneOf([
                 iaa.AllChannelsCLAHE(clip_limit=10),
                 iaa.AdditiveGaussianNoise(scale=(10, 40)),
