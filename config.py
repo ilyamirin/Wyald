@@ -71,6 +71,7 @@ class Constants:
     imageShape = "shape"
 
     default = "default"
+    all = "all"
 
 
 class Path:
@@ -95,6 +96,5 @@ class Path:
     fullCategories = os.path.join(root, f"{Constants.fullCategories}{Extensions.names}")
 
 
-
-
-
+class Sets:
+    subcategories = (Constants.avers, Constants.reverse)

@@ -10,7 +10,7 @@ from colorama import Fore, Style
 
 from verifier import getFullCategory, fitCoords
 from utils import makeJSONname, openJsonSafely, extendName
-from config import Extensions, Path, Constants as const
+from config import Extensions, Path, Sets, Constants as const
 
 
 def createGenerator(videosPath, videosInfo, overall, limit):
@@ -270,13 +270,11 @@ def extractCategories(videosPath=Path.rawVideos, summarizedPath=Path.summarizedR
 
 
 def main():
-    categories = []
-
     extractCategories(
         videosPath=Path.rawVideos,
         summarizedPath=Path.summarizedRaw,
-        categoriesList=categories,
-        subcategories=None,
+        categoriesList=None,
+        subcategories=Sets.subcategories,
         extractionPath=Path.original,
         framesLimit=2000,
         augmentationsLimit=2000,

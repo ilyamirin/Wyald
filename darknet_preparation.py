@@ -5,6 +5,7 @@ from colorama import Fore, Style
 import cv2
 
 from utils import walk, permutate, clean, makeJSONname, extendName, readLines, writeLines, matchLists, changeExtension
+from verifier import fitCoords
 from config import Extensions, Path, Constants as const
 
 
@@ -13,48 +14,109 @@ def cleanOldMarks(path):
     clean(path, targetExtensions=Extensions.txt, through=True)
 
 
-def extractMark(framesDir, frameName, ctgIdx, x1, y1, x2, y2, w, h):
-    xc = (x2 + x1) / (2 * w)
-    yc = (y2 + y1) / (2 * h)
-    bw = (x2 - x1) / w
-    bh = (y2 - y1) / h
+# def extractMark(framesDir, frameName, ctgIdx, x1, y1, x2, y2, w, h):
+#     xc = (x2 + x1) / (2 * w)
+#     yc = (y2 + y1) / (2 * h)
+#     bw = (x2 - x1) / w
+#     bh = (y2 - y1) / h
+#
+#     s = f"{ctgIdx} {xc} {yc} {bw} {bh}\n"
+#
+#     with open(os.path.join(framesDir, extendName(frameName, Extensions.txt)), "w") as f:
+#         f.write(s)
+#
+#     if bh < 0.05 or bw < 0.05:  # грубая проверка на адекватность разметки
+#         s = ""
+#
+#
+# def extractCrops(cutDir, framePath, idx, x1, y1, x2, y2):
+#     image = cv2.imread(framePath)
+#     h, w, _ = image.shape
+#
+#     bbox = image[min(y1 + 10, 0):max(y2 - 10, h), max(x1 - 10, 0):min(x2 + 10, w), :]
+#
+#     frameName = os.path.splitext(os.path.basename(framePath))[0].replace("_", "-")
+#     newName = f"{idx}_{extendName(frameName, Extensions.jpg)}"
+#
+#     if not os.path.exists(os.path.join(cutDir, newName)):
+#         cv2.imwrite(os.path.join(cutDir, newName), bbox)
+#
+#
+# def extractData(categoryDir, idx):
+#     # idx = [0]
+#     import shutil
+#     marksPath = os.path.join(categoryDir, makeJSONname(const.marks))
+#     framesDir = os.path.join(categoryDir, const.frames)
+#     cutDir = os.path.join(os.path.dirname(framesDir), const.cut)
+#     if os.path.exists(cutDir):
+#         shutil.rmtree(cutDir)
+#
+#     os.makedirs(cutDir, exist_ok=True)
+#
+#     try:
+#         marks = json.load(open(marksPath, "r"))
+#     except FileNotFoundError:
+#         return
+#
+#     print(f"\n{Fore.GREEN}Processing {marksPath} {Style.RESET_ALL}")
+#
+#     # i = 0
+#     for frameIdx, frameName in enumerate(marks):
+#         # if i == 5:
+#         #     break
+#         # i += 1
+#         # # frameIdx += idx[0]
+#         frameMarks = marks[frameName]
+#         framePath = os.path.join(framesDir, frameMarks[const.image])
+#
+#         if not os.path.exists(framePath):
+#             continue
+#
+#         y1, x1, y2, x2 = frameMarks[const.coords]
+#         h, w = frameMarks[const.imageShape]
+#
+#         xc = (x2 + x1) / 2
+#         yc = (y2 + y1) / 2
+#         bw = (x2 - x1)
+#         bh = (y2 - y1)
+#
+#         if not checkBoundingBoxIsCorrect(xc, yc, bw, bh):
+#             continue
+#         # extractMark(framesDir, frameName, marks[frameName], x1, y1, x2, y2, w, h)
+#         # print("\r{:.1f}% of work has been done".format((frameIdx + 1) / len(marks) * 100), end="")
+#
+#         extractCrops(cutDir, os.path.join(framesDir, extendName(frameName, Extensions.jpg)), idx[0], x1, y1, x2, y2)
+#         print("\r{:.1f}% of work has been done".format((frameIdx + 1) / len(marks) * 100), end="")
+#
+#         idx[0] += 1
 
-    s = f"{ctgIdx} {xc} {yc} {bw} {bh}\n"
 
-    with open(os.path.join(framesDir, extendName(frameName, Extensions.txt)), "w") as f:
-        f.write(s)
+def checkBoundingBoxIsCorrect(w, h):
+    if w < 0.05 or h < 0.05:
+        return False
 
-    if bh < 0.05 or bw < 0.05:  # грубая проверка на адекватность разметки
-        s = ""
+    aspectRatio = max(w / h, h / w)
+    if aspectRatio > 4:
+        return False
 
-
-def extractCrops(framesDir, frameName, idx, x1, y1, x2, y2):
-    image = cv2.imread(os.path.join(framesDir, extendName(frameName, Extensions.jpg)))
-    bbox = image[y1 + 10:y2 - 10, x1 - 10:x2 + 10, :]
-
-    frameName = frameName.replace("_", "-")
-    newName = f"{idx}_{extendName(frameName, Extensions.jpg)}"
-
-    cutDir = os.path.join(framesDir, const.cut)
-    os.makedirs(cutDir, exist_ok=True)
-    if not os.path.exists(os.path.join(cutDir, newName)):
-        cv2.imwrite(os.path.join(cutDir, newName), bbox)
+    return True
 
 
-def extractData(categoryDir):
-    idx = [0]
+def extractCrops(categoryDir, extension=Extensions.png, globalIdx=0):
     marksPath = os.path.join(categoryDir, makeJSONname(const.marks))
     framesDir = os.path.join(categoryDir, const.frames)
+    cutDir = os.path.join(categoryDir, const.cut)
+
+    os.makedirs(cutDir, exist_ok=True)
 
     try:
         marks = json.load(open(marksPath, "r"))
     except FileNotFoundError:
         return
 
-    print(f"\n{Fore.GREEN}Processing {marksPath} {Style.RESET_ALL}")
+    print(f"\n{Fore.GREEN}Processing crop operation for {marksPath} {Style.RESET_ALL}")
 
     for frameIdx, frameName in enumerate(marks):
-        frameIdx += idx[0]
         frameMarks = marks[frameName]
         framePath = os.path.join(framesDir, frameMarks[const.image])
 
@@ -62,27 +124,40 @@ def extractData(categoryDir):
             continue
 
         y1, x1, y2, x2 = frameMarks[const.coords]
+        fullCategory = frameMarks[const.fullCategory]
         h, w = frameMarks[const.imageShape]
 
-        extractMark(framesDir, frameName, marks[frameName], x1, y1, x2, y2, w, h)
+        if not checkBoundingBoxIsCorrect(x2 - x1, y2 - y1):
+            continue
+
+        y1, x1, y2, x2 = fitCoords((y1 - 10, x1 - 10, y2 + 10, x2 + 10), (h, w))
+
+        cutName = f"{globalIdx}_{extendName(fullCategory, extension)}"
+        globalIdx += 1
+
+        if os.path.exists(os.path.join(cutDir, cutName)):
+            print("\r{:.1f}% of work has been done".format((frameIdx + 1) / len(marks) * 100), end="")
+            continue
+
+        frame = cv2.imread(framePath)
+        cut = frame[y1:y2, x1:x2, ...]
+        cv2.imwrite(os.path.join(cutDir, cutName), cut)
+
         print("\r{:.1f}% of work has been done".format((frameIdx + 1) / len(marks) * 100), end="")
 
-        extractCrops(framesDir, frameName, frameIdx, x1, y1, x2, y2)
-        print("\r{:.1f}% of work has been done".format((frameIdx + 1) / len(marks) * 100), end="")
-
-    idx[0] += len(marks.keys()) + 1
+    return globalIdx
 
 
-def checkBoundingBoxIsCorrect(xc, yc, w, h):
-    if w < 0.05 or h < 0.05:
-        return False
+def extractCropsThroughDataset(datasetPath, categories=None, subcategories=None, extension=Extensions.png):
+    # cleanOldMarks(datasetPath)
+    frames = walk(datasetPath, targetDirs=const.frames).get("dirs")
+    frames = filterFolders(frames, categories, subcategories)
 
-    aspectRatio = w / h
-    k = 4.0
-    if aspectRatio < 1 / k or aspectRatio > k:
-        return False
-
-    return True
+    globalIdx = 0
+    for dirsSet in frames:
+        dirsSet = dirsSet[:-1]
+        categoryDir = os.path.join(datasetPath, *dirsSet)
+        globalIdx = extractCrops(categoryDir, extension=extension, globalIdx=globalIdx)
 
 
 def extractMarks(categoryDir):
@@ -94,7 +169,7 @@ def extractMarks(categoryDir):
     except FileNotFoundError:
         return
 
-    print(f"\n{Fore.GREEN}Processing {marksPath} {Style.RESET_ALL}")
+    print(f"\n{Fore.GREEN}Processing extraction marks for {marksPath} {Style.RESET_ALL}")
 
     for frameIdx, frameName in enumerate(marks):
         frameMarks = marks[frameName]
@@ -114,28 +189,42 @@ def extractMarks(categoryDir):
 
         darknetString = f"{ctgIdx} {xc} {yc} {bw} {bh}\n"
 
-        if not checkBoundingBoxIsCorrect(xc, yc, bw, bh):
+        if not checkBoundingBoxIsCorrect(bw, bh):
             darknetString = ""
 
-        with open(os.path.join(framesDir, extendName(frameName, Extensions.txt)), "w") as f:
+        txtName = os.path.splitext(frameMarks['image'])[0]
+        with open(os.path.join(framesDir, extendName(txtName, Extensions.txt)), "w") as f:
             f.write(darknetString)
 
         print("\r{:.1f}% of work has been done".format((frameIdx + 1) / len(marks) * 100), end="")
 
 
-def extractMarksThroughDataset(datasetPath):
-    cleanOldMarks(datasetPath)
+def filterFolders(folders, categories, subcategories):
+    if categories is not None:
+        for dirSet in folders[::-1]:
+            if not any(ctg in dirSet for ctg in categories):
+                folders.remove(dirSet)
+
+    if subcategories is not None:
+        for dirSet in folders[::-1]:
+            if not any(subctg in dirSet for subctg in subcategories):
+                folders.remove(dirSet)
+
+    return folders
+
+
+def extractMarksThroughDataset(datasetPath, categories=None, subcategories=None, parallel=False, threads=16):
+    # cleanOldMarks(datasetPath)
     frames = walk(datasetPath, targetDirs=const.frames).get("dirs")
+    frames = filterFolders(frames, categories, subcategories)
 
     for dirsSet in frames:
         dirsSet = dirsSet[:-1]
-
         categoryDir = os.path.join(datasetPath, *dirsSet)
         extractMarks(categoryDir)
-        # extractData(categoryDir)
 
 
-def makeSets(directories, wpath=Path.sets, trainPart=0.8, validPart=0.2, ignoreOld=False):
+def makeSets(directories, wpath=Path.sets, trainPart=0.9, validPart=0.05, ignoreOld=False):
     assert 0 < trainPart + validPart <= 1
     os.makedirs(wpath, exist_ok=True)
 
@@ -147,7 +236,7 @@ def makeSets(directories, wpath=Path.sets, trainPart=0.8, validPart=0.2, ignoreO
             "part": trainPart,
             "content": []
         },
-        const.valid: {
+         const.valid: {
             "path": os.path.join(wpath, extendName(const.valid, Extensions.txt)),
             "part": validPart,
             "content": []
@@ -212,10 +301,44 @@ def purifySets():
         print(f"Cleaned {total - len(files)} from {path}")
 
 
+def makeCategoriesList(summarizedPath=Path.summarizedRaw, allowedSubCtgList=None):
+    from utils import openJsonSafely, writeLines
+    from verifier import getFullCategory
+
+    summarized = openJsonSafely(summarizedPath)
+
+    ctgList = []
+    for ctg, value in summarized.items():
+        if ctg == const.maxIdx:
+            continue
+
+        for subctg in value:
+            if allowedSubCtgList is not None and subctg not in allowedSubCtgList:
+                continue
+
+            idx = value[subctg][const.ctgIdx]
+            ctgList.append((getFullCategory(ctg, subctg), idx))
+
+    ctgList = [ctg for ctg, _ in sorted(ctgList, key=lambda x: x[1])]
+    writeLines(ctgList, Path.categories)
+
+
+def cleanDirs(root, dirNamesList):
+    import shutil
+
+    folders = walk(root, targetDirs=dirNamesList).get("dirs")
+    for dirSet in folders:
+        path = os.path.join(root, *dirSet)
+        shutil.rmtree(path, ignore_errors=True)
+
+
 def main():
-    pass
+    from config import Sets
+
+    # extractMarksThroughDataset(Path.dataset, subcategories=Sets.subcategories)
+    extractCropsThroughDataset(Path.dataset, subcategories=(Sets.subcategories))
 
 
 if __name__ == "__main__":
-    pass
+    main()
 

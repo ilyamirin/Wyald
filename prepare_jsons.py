@@ -35,8 +35,10 @@ def getVideoMarks(videoPath, marksPath):
     return marksSeparated
 
 
-def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw):
-    summarized = openJsonSafely(summarizedPath)
+def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw, allowedSubCtgList=None,
+                  overwrite=True):
+
+    summarized = openJsonSafely(summarizedPath) if not overwrite else {}
 
     rawVideosPath = os.path.join(rawPath, const.videos)
     rawJsonsPath = os.path.join(rawPath, const.json)
@@ -48,13 +50,15 @@ def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw):
         print(f"\rProcessing {video} ({i + 1} out of {len(rawVideos)})", end="")
 
         category, name = extractCategory(video)
-
         categoryInfo = summarized.get(category, {})
 
         videoJson = os.path.join(rawJsonsPath, makeJSONname(name))
         videoMarks = getVideoMarks(os.path.join(rawVideosPath, video), videoJson)
 
         for subctg, subctgMarks in videoMarks.items():
+            if allowedSubCtgList is not None and subctg not in allowedSubCtgList:
+                continue
+
             if subctg not in categoryInfo:
                 subctgIdx = maxIdx
                 maxIdx += 1
@@ -74,8 +78,9 @@ def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw):
 
             categoryInfo[subctg] = curSubctgMarks
 
-        summarized[category] = categoryInfo
-        summarized[const.maxIdx] = maxIdx
+        if categoryInfo:
+            summarized[category] = categoryInfo
+            summarized[const.maxIdx] = maxIdx
 
     json.dump(summarized, open(summarizedPath, "w"), indent=3)
     print(f"\n{Fore.GREEN}Summarized info file {summarizedPath} has been updated{Style.RESET_ALL}")
@@ -106,7 +111,8 @@ def fixFrameNumbers(jsonPath):
 
 
 def main():
-    pass
+    from config import Sets
+    summarizeInfo(allowedSubCtgList=Sets.subcategories)
 
 
 if __name__ == "__main__":
