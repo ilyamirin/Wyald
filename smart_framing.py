@@ -219,7 +219,7 @@ def extractCategories(videosPath=Path.rawVideos, summarizedPath=Path.summarizedR
 
             neededSubcategories = list(categoryInfo.keys())
             if subcategories is not None:
-                if isinstance(subcategories, list):
+                if isinstance(subcategories, (list, tuple)):
                     neededSubcategories = subcategories
                 elif isinstance(subcategories, dict):
                     neededSubcategories = subcategories.get(category, neededSubcategories)
