@@ -1,11 +1,13 @@
-import  os
+import os
 import json
+import time
+import multiprocessing as mp
 
 from colorama import Fore, Style
 import cv2
 
 from utils import walk, permutate, clean, makeJSONname, extendName, readLines, writeLines, matchLists, changeExtension
-from verifier import fitCoords
+from verifier import fitCoords, openJsonSafely
 from config import Extensions, Path, Constants as const
 
 
@@ -102,10 +104,10 @@ def checkBoundingBoxIsCorrect(w, h):
     return True
 
 
-def extractCrops(categoryDir, extension=Extensions.png, globalIdx=0):
+def extractCrops(categoryDir, extractionPath=None, extension=Extensions.png, params=None, globalIdx=0):
     marksPath = os.path.join(categoryDir, makeJSONname(const.marks))
     framesDir = os.path.join(categoryDir, const.frames)
-    cutDir = os.path.join(categoryDir, const.cut)
+    cutDir = os.path.join(categoryDir, const.cut) if extractionPath is None else extractionPath
 
     os.makedirs(cutDir, exist_ok=True)
 
@@ -114,50 +116,81 @@ def extractCrops(categoryDir, extension=Extensions.png, globalIdx=0):
     except FileNotFoundError:
         return
 
-    print(f"\n{Fore.GREEN}Processing crop operation for {marksPath} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN}Processing crop operation for {marksPath} {Style.RESET_ALL}")
+    time.sleep(0.5)
 
     for frameIdx, frameName in enumerate(marks):
         frameMarks = marks[frameName]
         framePath = os.path.join(framesDir, frameMarks[const.image])
 
         if not os.path.exists(framePath):
+            globalIdx += 1
             continue
 
         y1, x1, y2, x2 = frameMarks[const.coords]
         fullCategory = frameMarks[const.fullCategory]
         h, w = frameMarks[const.imageShape]
 
+        cutName = f"{globalIdx}_{extendName(fullCategory, extension)}"
+        globalIdx += 1
+
         if not checkBoundingBoxIsCorrect(x2 - x1, y2 - y1):
             continue
 
         y1, x1, y2, x2 = fitCoords((y1 - 10, x1 - 10, y2 + 10, x2 + 10), (h, w))
 
-        cutName = f"{globalIdx}_{extendName(fullCategory, extension)}"
-        globalIdx += 1
-
         if os.path.exists(os.path.join(cutDir, cutName)):
-            print("\r{:.1f}% of work has been done".format((frameIdx + 1) / len(marks) * 100), end="")
+            print("\r{:.1f}% of work has been done for {} category".
+                  format((frameIdx + 1) / len(marks) * 100, fullCategory), end="")
             continue
 
         frame = cv2.imread(framePath)
         cut = frame[y1:y2, x1:x2, ...]
-        cv2.imwrite(os.path.join(cutDir, cutName), cut)
+        cv2.imwrite(os.path.join(cutDir, cutName), cut, params)
 
-        print("\r{:.1f}% of work has been done".format((frameIdx + 1) / len(marks) * 100), end="")
+        print("\r{:.1f}% of work has been done for {} category".
+              format((frameIdx + 1) / len(marks) * 100, fullCategory), end="")
 
     return globalIdx
 
 
-def extractCropsThroughDataset(datasetPath, categories=None, subcategories=None, extension=Extensions.png):
-    # cleanOldMarks(datasetPath)
+def extractCropsThroughDataset(datasetPath, extractionPath=None, categories=None, subcategories=None,
+                               extension=Extensions.png, params=None, parallel=True, threads=16):
+
     frames = walk(datasetPath, targetDirs=const.frames).get("dirs")
     frames = filterFolders(frames, categories, subcategories)
 
+    if parallel:
+        threads = min(threads, mp.cpu_count())
+    else:
+        threads = 1
+
     globalIdx = 0
-    for dirsSet in frames:
-        dirsSet = dirsSet[:-1]
-        categoryDir = os.path.join(datasetPath, *dirsSet)
-        globalIdx = extractCrops(categoryDir, extension=extension, globalIdx=globalIdx)
+    threadsList = []
+    with mp.Pool(threads) as pool:
+        for dirsSet in frames:
+            dirsSet = dirsSet[:-1]
+            categoryDir = os.path.join(datasetPath, *dirsSet)
+
+            length = len(openJsonSafely(os.path.join(categoryDir, makeJSONname(const.marks))))
+
+            threadsList.append(
+                pool.apply_async(
+                    extractCrops,
+                    args=(categoryDir, ),
+                    kwds={
+                        "extractionPath": extractionPath,
+                        "extension": extension,
+                        "params": params,
+                        "globalIdx": globalIdx
+                    }
+                )
+            )
+
+            globalIdx += length
+
+        for r in threadsList:
+            r.get()
 
 
 def extractMarks(categoryDir):
@@ -224,7 +257,7 @@ def extractMarksThroughDataset(datasetPath, categories=None, subcategories=None,
         extractMarks(categoryDir)
 
 
-def makeSets(directories, wpath=Path.sets, trainPart=0.9, validPart=0.05, ignoreOld=False):
+def makeSets(directories, wpath=Path.sets, trainPart=0.9, validPart=0.05, ignoreOld=False, matchWithMarks=True):
     assert 0 < trainPart + validPart <= 1
     os.makedirs(wpath, exist_ok=True)
 
@@ -261,12 +294,16 @@ def makeSets(directories, wpath=Path.sets, trainPart=0.9, validPart=0.05, ignore
 
         dirImages = [os.path.join(path, *img) for img in walk(path, targetExtensions=Extensions.images()).get("extensions")]
         images.extend(dirImages)
-        dirMarks = [os.path.join(path, *mrk) for mrk in walk(path, targetExtensions=Extensions.txt).get("extensions")]
-        marks.extend(dirMarks)
 
-    transformer = lambda x: changeExtension(x, Extensions.txt)
-    print("Matching images to marks, please wait...")
-    images = matchLists(master=marks, slave=images, transformer=transformer)
+        if matchWithMarks:
+            dirMarks = [os.path.join(path, *mrk) for mrk in walk(path, targetExtensions=Extensions.txt).get("extensions")]
+            marks.extend(dirMarks)
+
+    if matchWithMarks:
+        transformer = lambda x: changeExtension(x, Extensions.txt)
+        print("Matching images to marks, please wait...")
+        images = matchLists(master=marks, slave=images, transformer=transformer)
+
     _, images = matchLists(master=inUse, slave=images, getMismatched=True)
 
     images = permutate(images)
@@ -335,8 +372,26 @@ def cleanDirs(root, dirNamesList):
 def main():
     from config import Sets
 
+    # cleanDirs(
+    #     root=Path.dataset,
+    #     dirNamesList=(const.cut)
+    # )
     # extractMarksThroughDataset(Path.dataset, subcategories=Sets.subcategories)
-    extractCropsThroughDataset(Path.dataset, subcategories=(Sets.subcategories))
+    # extractCropsThroughDataset(
+    #     datasetPath=Path.dataset,
+    #     extractionPath=r"C:\Projects\Temp_coins_data\cuts",
+    #     subcategories=(Sets.subcategories),
+    #     extension=Extensions.jpg,
+    #     params=[cv2.IMWRITE_JPEG_QUALITY, 100],
+    #     parallel=True,
+    #     threads=16
+    # )
+
+    makeSets(
+        directories=[r"C:\Projects\Temp_coins_data\cuts"],
+        wpath=r"C:\Projects\Temp_coins_data\classifier_sets",
+        matchWithMarks=False
+    )
 
 
 if __name__ == "__main__":
