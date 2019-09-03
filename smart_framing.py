@@ -205,7 +205,10 @@ def extractCategories(videosPath=Path.rawVideos, summarizedPath=Path.summarizedR
     summarized = openJsonSafely(summarizedPath)
 
     categoriesList = list(summarized.keys()) if categoriesList is None else categoriesList
-    categoriesList.remove(const.maxIdx)
+    try:
+        categoriesList.remove(const.maxIdx)
+    except:
+        pass
 
     if parallel:
         threads = min(threads, mp.cpu_count())
@@ -270,11 +273,17 @@ def extractCategories(videosPath=Path.rawVideos, summarizedPath=Path.summarizedR
 
 
 def main():
+    from utils import readLines
+    from verifier import splitFullCategory
+
+    fullCategories = readLines(Path.categories)
+    categories = set([splitFullCategory(ctg)[0] for ctg in fullCategories])
+
     extractCategories(
         videosPath=Path.rawVideos,
         summarizedPath=Path.summarizedRaw,
-        categoriesList=None,
-        subcategories=Sets.subcategories,
+        categoriesList=categories,
+        subcategories=(const.avers,),
         extractionPath=Path.original,
         framesLimit=2000,
         augmentationsLimit=2000,

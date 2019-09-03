@@ -251,10 +251,26 @@ def extractMarksThroughDataset(datasetPath, categories=None, subcategories=None,
     frames = walk(datasetPath, targetDirs=const.frames).get("dirs")
     frames = filterFolders(frames, categories, subcategories)
 
-    for dirsSet in frames:
-        dirsSet = dirsSet[:-1]
-        categoryDir = os.path.join(datasetPath, *dirsSet)
-        extractMarks(categoryDir)
+    if parallel:
+        threads = min(threads, mp.cpu_count())
+    else:
+        threads = 1
+
+    threadsList = []
+    with mp.Pool(threads) as pool:
+        for dirsSet in frames:
+            dirsSet = dirsSet[:-1]
+            categoryDir = os.path.join(datasetPath, *dirsSet)
+
+            threadsList.append(
+                pool.apply_async(
+                    extractMarks,
+                    args=(categoryDir,)
+                )
+            )
+
+        for r in threadsList:
+            r.get()
 
 
 def makeSets(directories, wpath=Path.sets, trainPart=0.9, validPart=0.05, ignoreOld=False, matchWithMarks=True):
@@ -290,7 +306,7 @@ def makeSets(directories, wpath=Path.sets, trainPart=0.9, validPart=0.05, ignore
     marks = []
     for dirIdx, path in enumerate(directories):
         print("\rSearching for images and marks in listed directories, {:.1f}% has been done".
-              format(dirIdx / len(directories) * 100))
+              format(dirIdx / len(directories) * 100), end="")
 
         dirImages = [os.path.join(path, *img) for img in walk(path, targetExtensions=Extensions.images()).get("extensions")]
         images.extend(dirImages)
@@ -304,7 +320,7 @@ def makeSets(directories, wpath=Path.sets, trainPart=0.9, validPart=0.05, ignore
         print("Matching images to marks, please wait...")
         images = matchLists(master=marks, slave=images, transformer=transformer)
 
-    _, images = matchLists(master=inUse, slave=images, getMismatched=True)
+    # _, images = matchLists(master=inUse, slave=images, getMismatched=True)
 
     images = permutate(images)
 
@@ -316,6 +332,7 @@ def makeSets(directories, wpath=Path.sets, trainPart=0.9, validPart=0.05, ignore
         total = end - start
 
         info["content"].extend(images[start:end])
+        info["content"] = permutate(info["content"])
         start = end
 
         writeLines(lines=info["content"], path=info["path"])
@@ -371,15 +388,20 @@ def cleanDirs(root, dirNamesList):
 
 def main():
     from config import Sets
+    from verifier import splitFullCategory
 
     # cleanDirs(
     #     root=Path.dataset,
     #     dirNamesList=(const.cut)
     # )
     # extractMarksThroughDataset(Path.dataset, subcategories=Sets.subcategories)
+    # fullCtgs = readLines(r"E:\pretty_coins\desired_categories.names")
+    # categories = set([splitFullCategory(ctg)[0] for ctg in fullCtgs])
+    #
     # extractCropsThroughDataset(
     #     datasetPath=Path.dataset,
-    #     extractionPath=r"C:\Projects\Temp_coins_data\cuts",
+    #     extractionPath=r"D:\projects\coins\cuts",
+    #     categories=categories,
     #     subcategories=(Sets.subcategories),
     #     extension=Extensions.jpg,
     #     params=[cv2.IMWRITE_JPEG_QUALITY, 100],
@@ -387,11 +409,30 @@ def main():
     #     threads=16
     # )
 
+    # extractMarks(r"E:\pretty_coins\negatives")
     makeSets(
-        directories=[r"C:\Projects\Temp_coins_data\cuts"],
-        wpath=r"C:\Projects\Temp_coins_data\classifier_sets",
-        matchWithMarks=False
-    )
+        [r"E:\pretty_coins\negatives"],
+        wpath=r"E:\pretty_coins\sets\pretty_set\final",
+        matchWithMarks=False,
+        ignoreOld=False
+             )
+
+    # makeCategoriesList(Path.summarizedRaw, allowedSubCtgList=Sets.subcategories)
+
+    # fullCtgs = readLines(Path.categories)
+    # categories = set([splitFullCategory(ctg)[0] for ctg in fullCtgs])
+    # #
+    # extractMarksThroughDataset(Path.dataset, categories=categories, subcategories=(const.avers,), parallel=True)
+    # #
+    # frames = walk(Path.dataset, targetDirs=const.frames).get("dirs")
+    # frames = filterFolders(frames, categories, (const.avers,))
+    # frames = [os.path.join(Path.dataset, *f[:-1]) for f in frames]
+    #
+    # makeSets(
+    #     directories=frames,
+    #     wpath=os.path.join(Path.sets, "pretty_set", "final"),
+    #     matchWithMarks=False
+    # )
 
 
 if __name__ == "__main__":

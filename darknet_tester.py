@@ -10,8 +10,8 @@ from Renderers.OpenCVRenderer import drawBoxes
 
 
 class Config:
-    DARKNET_PATH = ""
-    CONFIG_PATH = ""
+    DARKNET_PATH = r"C:\Projects\darknet_win_improved"
+    CONFIG_PATH = r"C:\Projects\darknet_win_improved\myconfig\detector_47"
 
     config_path = os.path.join(CONFIG_PATH, "yolov3.cfg")
     meta_path = os.path.join(CONFIG_PATH, "coins.data")

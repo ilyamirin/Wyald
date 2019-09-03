@@ -35,7 +35,7 @@ def getVideoMarks(videoPath, marksPath):
     return marksSeparated
 
 
-def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw, allowedSubCtgList=None,
+def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw, allowedCategories=None, allowedSubCtgList=None,
                   overwrite=True):
 
     summarized = openJsonSafely(summarizedPath) if not overwrite else {}
@@ -50,6 +50,10 @@ def summarizeInfo(rawPath=Path.raw, summarizedPath=Path.summarizedRaw, allowedSu
         print(f"\rProcessing {video} ({i + 1} out of {len(rawVideos)})", end="")
 
         category, name = extractCategory(video)
+
+        if category not in allowedCategories:
+            continue
+
         categoryInfo = summarized.get(category, {})
 
         videoJson = os.path.join(rawJsonsPath, makeJSONname(name))
@@ -110,9 +114,52 @@ def fixFrameNumbers(jsonPath):
         print(f"{Fore.BLUE}JSON file {path} has been fixed{Style.RESET_ALL}")
 
 
+def updateCategoriesIndicies(datasetPath, categories):
+    from utils import walk, makeJSONname
+    from verifier import getFullCategory
+
+    marks = walk(datasetPath, targetFiles=makeJSONname(const.marks)).get("files")
+
+    for mrk in marks:
+        marksPath = os.path.join(datasetPath, *mrk)
+
+        category, subcategory = mrk[-3:-1]
+        fullCategory = getFullCategory(category, subcategory)
+
+        if fullCategory not in categories:
+            continue
+
+        marks = openJsonSafely(marksPath)
+
+        for f, value in marks.items():
+            fullCategory = value[const.fullCategory]
+            value[const.ctgIdx] = categories.index(fullCategory)
+
+        json.dump(marks, open(marksPath, "w"), indent=3)
+        print(f"{Fore.BLUE}JSON file {marksPath} has been fixed{Style.RESET_ALL}")
+
+
+
 def main():
     from config import Sets
-    summarizeInfo(allowedSubCtgList=Sets.subcategories)
+    from utils import readLines
+    from verifier import splitFullCategory
+    from darknet_preparation import makeCategoriesList
+
+    # fixFrameNumbers(Path.rawJson)
+    #
+    # fullCtgs = readLines(r"E:\pretty_coins\final_categories.names")
+    # categories = set([splitFullCategory(ctg)[0] for ctg in fullCtgs])
+    #
+    # summarizeInfo(
+    #     allowedSubCtgList=(const.avers,),
+    #     allowedCategories=categories
+    # )
+    #
+    # makeCategoriesList(Path.summarizedRaw)
+    #
+    categories = readLines(Path.categories)
+    updateCategoriesIndicies(Path.dataset, categories)
 
 
 if __name__ == "__main__":
