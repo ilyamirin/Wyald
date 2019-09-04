@@ -33,6 +33,8 @@ class Constants:
     dataset = "dataset"
 
     frames = "frames"
+    negatives = "negatives"
+    raw_final = "raw_final"
     cut = "cut"
     sets = "sets"
     raw = "raw_data"
@@ -86,6 +88,8 @@ class Path:
     rawJson = os.path.join(raw, Constants.json)
     rawXml = os.path.join(raw, Constants.xml)
 
+    negative = os.path.join(root, Constants.negatives)
+    raw_final = os.path.join(root, Constants.raw_final)
     sets = os.path.join(root, Constants.sets)
 
     summarizedRaw = os.path.join(root, f"{Constants.summarizedRaw}{Extensions.json}")

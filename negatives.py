@@ -5,7 +5,7 @@ import json
 import cv2
 
 from utils import walk, makeJSONname, openJsonSafely
-from config import Extensions, Constants as const
+from config import Extensions, Constants as const, Path
 from framing import generateFrames
 
 
@@ -43,17 +43,18 @@ def makeNegativesMarks(rpath):
 
 
 def main():
+    os.makedirs(os.path.join(Path.negative, const.frames), exist_ok=True)
     # prepareImages(
     #     rpath=r"E:\negatives",
-    #     wpath=r"E:\pretty_coins\negatives\frames"
+    #     wpath=os.path.join(Path.negative, const.frames)
     # )
     #
     # prepareVideo(
     #     rpath=r"E:\negatives",
-    #     wpath=r"E:\pretty_coins\negatives\frames"
+    #     wpath=os.path.join(Path.negative, const.frames)
     # )
 
-    makeNegativesMarks(r"E:\pretty_coins\negatives")
+    makeNegativesMarks(Path.negative)
 
 
 if __name__ == "__main__":
