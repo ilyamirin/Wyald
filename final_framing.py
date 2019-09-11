@@ -92,7 +92,7 @@ def framingVersion3(videoPath, targetDir):
 def main(videoDir, targetDir):
     os.makedirs(targetDir, exist_ok=True)
 
-    ctgList = parseCategories(os.path.join(Path.root, "categories.txt"))
+    ctgList = parseCategories(os.path.join(Path.root, "categories.names"))
     fixCategoriesIndexes(ctgList)
 
     for video in os.listdir(videoDir):
