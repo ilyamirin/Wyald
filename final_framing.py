@@ -84,7 +84,7 @@ def framingVersion3(videoPath, targetDir):
         for r in rects:
             ctgIdx = int(r[0])
             xc, yc, tw, th = r[1], r[2], r[3], r[4]
-            lines.append(f"{ctgIdx} {xc} {xc} {tw} {th}")
+            lines.append(f"{ctgIdx} {xc} {yc} {tw} {th}")
         writeLines(lines, os.path.join(targetDir, f"{name}{Extensions.txt}"))
         idx += 1
 
