@@ -121,23 +121,25 @@ def updateCategoriesIndicies(datasetPath, categories):
     marks = walk(datasetPath, targetFiles=makeJSONname(const.marks)).get("files")
 
     for mrk in marks:
-        marksPath = os.path.join(datasetPath, *mrk)
+        try:
+            marksPath = os.path.join(datasetPath, *mrk)
 
-        category, subcategory = mrk[-3:-1]
-        fullCategory = getFullCategory(category, subcategory)
+            category, subcategory = mrk[-3:-1]
+            fullCategory = getFullCategory(category, subcategory)
 
-        if fullCategory not in categories:
-            continue
+            if fullCategory not in categories:
+                continue
 
-        marks = openJsonSafely(marksPath)
+            marks = openJsonSafely(marksPath)
 
-        for f, value in marks.items():
-            fullCategory = value[const.fullCategory]
-            value[const.ctgIdx] = categories.index(fullCategory)
+            for f, value in marks.items():
+                fullCategory = value[const.fullCategory]
+                value[const.ctgIdx] = categories.index(fullCategory)
 
-        json.dump(marks, open(marksPath, "w"), indent=3)
-        print(f"{Fore.BLUE}JSON file {marksPath} has been fixed{Style.RESET_ALL}")
-
+            json.dump(marks, open(marksPath, "w"), indent=3)
+            print(f"{Fore.BLUE}JSON file {marksPath} has been fixed{Style.RESET_ALL}")
+        except Exception as e:
+            print(e)
 
 
 def main():
