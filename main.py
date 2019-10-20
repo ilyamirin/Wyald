@@ -4,336 +4,140 @@ import json
 
 import cv2
 import numpy as np
-
+from config import Path, Extensions
 from random import shuffle, seed
+from Annotator import Annotation
 
-category = {
-    "astronomiya-2009": 0,
-   "bandikut-2011": 1,
-   "bashnya-2010": 2,
-   "dumskaya-bashnya-2010": 3,
-   "kavaleriya-1812-2012": 4,
-   "klyuch-k-serdtsu-2017": 5,
-   "koala-s-opala-2012": 6,
-   "koleso-fortuny-2018": 7,
-   "lastochkino-gnezdo-2012": 8,
-   "livadiyskiy-dvorets-2013": 9,
-   "london-2014": 10,
-   "lyubov-dragotsenna-2018": 11,
-   "matrona-moskvina-2017": 12,
-   "moskva-2014": 13,
-   "Osminog-2012": 14,
-   "pauk-2011": 15,
-   "serafim-svarovskiy-2018": 16,
-   "sergiy-radonezhskiy-2018": 17,
-   "simvoli-rossii-kiji-2015": 18,
-   "strelets-2014": 19,
-   "svinya-s-babochkoy-2019": 20,
-   "tigr-II-2011": 21,
-   "viktor-tsoy-2012": 22,
-   "yekaterininskiy-dvorets-2010": 23,
-   "Akhaltekinskiy-kon-2011-avers": 24,
-   "Akhaltekinskiy-kon-2011-reverse": 25,
-   "Bayk-2007-avers": 26,
-   "Bayk-2007-reverse": 27,
-   "Bekenbaue-2012-reverse": 28,
-   "BELYY-MEDVED-2012-avers": 29,
-   "BELYY-MEDVED-2012-reverse": 30,
-   "buki-2013-avers": 31,
-   "Bychek-2009-avers": 32,
-   "Bychek-2009-reverse": 33,
-   "Dinozavry-morskiye-2013-avers": 34,
-   "Dinozavry-morskiye-2013-reverse": 35,
-   "Dzhaz-2010-avers": 36,
-   "Dzhaz-2010-reverse": 37,
-   "KHRAM-KHRISTA-SPASITELYA-2012-v-avers": 38,
-   "KHRAM-KHRISTA-SPASITELYA-2012-v-reverse": 39,
-   "KITAYSKAYA-KHOKHLATAYA-2012-avers": 40,
-   "KITAYSKAYA-KHOKHLATAYA-2012-reverse": 41,
-   "krylataya-loshad-2014-avers": 42,
-   "krylataya-loshad-2014-reverse": 43,
-   "More-lyubvi-2017-avers": 44,
-   "More-lyubvi-2017-reverse": 45,
-   "Noterdam-2010-avers": 46,
-   "Noterdam-2010-reverse": 47,
-   "Panda-2013-avers": 48,
-   "Panda-2013-reverse": 49,
-   "Parizh-2013-avers": 50,
-   "Parizh-2013-reverse": 51,
-   "Pele-2008-avers": 52,
-   "Pele-2008-reverse": 53,
-   "Pervyy-samolet-2011-avers": 54,
-   "Pervyy-samolet-2011-reverse": 55,
-   "Polet-k-zvezdam-2012-avers": 56,
-   "Polet-k-zvezdam-2012-reverse": 57,
-   "renuar-2008S-avers": 58,
-   "renuar-2008S-reverse": 59,
-   "Russkaya-golubaya-2019-avers": 60,
-   "Russkaya-golubaya-2019-reverse": 61,
-   "Ryby-2011-avers": 62,
-   "Ryby-2011-reverse": 63,
-   "Snegovik-2009-avers": 64,
-   "Snegovik-2009-reverse": 65,
-   "Telets-2009-avers": 66,
-   "Telets-2009-reverse": 67,
-   "Tigrenok-2010-avers": 68,
-   "Tigrenok-2010-reverse": 69,
-   "Tigrnok-2010-avers": 70,
-   "Tigrnok-2010-reverse": 71
-}
-categoryNames = {
-    "astronomiya-2009" : "astronomiya-2009",
-    "bandikut-2011" : "bandikut-2011",
-    "bashnya-2010" : "bashnya-2010",
-    "dumskaya-bashnya-2010" : "dumskaya-bashnya-2010",
-    "kavaleriya-1812-2012" : "kavaleriya-1812-2012",
-    "klyuch-k-serdtsu-2017" : "klyuch-k-serdtsu-2017",
-    "koala-s-opala-2012" : "koala-s-opala-2012",
-    "koleso-fortuny-2018" : "koleso-fortuny-2018",
-    "lastochkino-gnezdo-2012" : "lastochkino-gnezdo-2012",
-    "livadiyskiy-dvorets-2013" : "livadiyskiy-dvorets-2013",
-    "london-2014" : "london-2014",
-    "lyubov-dragotsenna-2018" : "lyubov-dragotsenna-2018",
-    "matrona-moskvina-2017" : "matrona-moskvina-2017",
-    "moskva-2014" : "moskva-2014",
-    "Osminog-2012" : "Osminog-2012",
-    "pauk-2011" : "pauk-2011",
-    "serafim-svarovskiy-2018" : "serafim-svarovskiy-2018",
-    "sergiy-radonezhskiy-2018" : "sergiy-radonezhskiy-2018",
-    "simvoli-rossii-kiji-2015" : "simvoli-rossii-kiji-2015",
-    "strelets-2014" : "strelets-2014",
-    "svinya-s-babochkoy-2019" : "svinya-s-babochkoy-2019",
-    "tigr-II-2011" : "tigr-II-2011",
-    "viktor-tsoy-2012" : "viktor-tsoy-2012",
-    "yekaterininskiy-dvorets-2010" : "yekaterininskiy-dvorets-2010",
-    "Akhaltekinskiy-kon-2011-avers" : "Akhaltekinskiy-kon-2011-avers",
-    "Akhaltekinskiy-kon-2011-reverse" : "Akhaltekinskiy-kon-2011-reverse",
-    "Bayk-2007-avers" : "Bayk-2007-avers",
-    "Bayk-2007-reverse" : "Bayk-2007-reverse",
-    "Bekenbaue-2012-reverse" : "Bekenbaue-2012-reverse",
-    "BELYY-MEDVED-2012-avers" : "BELYY-MEDVED-2012-avers",
-    "BELYY-MEDVED-2012-reverse" : "BELYY-MEDVED-2012-reverse",
-    "buki-2013-avers" : "buki-2013-avers",
-    "Bychek-2009-avers" : "Bychek-2009-avers",
-    "Bychek-2009-reverse" : "Bychek-2009-reverse",
-    "Dinozavry-morskiye-2013-avers" : "Dinozavry-morskiye-2013-avers",
-    "Dinozavry-morskiye-2013-reverse" : "Dinozavry-morskiye-2013-reverse",
-    "Dzhaz-2010-avers" : "Dzhaz-2010-avers",
-    "Dzhaz-2010-reverse" : "Dzhaz-2010-reverse",
-    "KHRAM-KHRISTA-SPASITELYA-2012-v-avers" : "KHRAM-KHRISTA-SPASITELYA-2012-v-avers",
-    "KHRAM-KHRISTA-SPASITELYA-2012-v-reverse" : "KHRAM-KHRISTA-SPASITELYA-2012-v-reverse",
-    "KITAYSKAYA-KHOKHLATAYA-2012-avers" : "KITAYSKAYA-KHOKHLATAYA-2012-avers",
-    "KITAYSKAYA-KHOKHLATAYA-2012-reverse" : "KITAYSKAYA-KHOKHLATAYA-2012-reverse",
-    "krylataya-loshad-2014-avers" : "krylataya-loshad-2014-avers",
-    "krylataya-loshad-2014-reverse" : "krylataya-loshad-2014-reverse",
-    "More-lyubvi-2017-avers" : "More-lyubvi-2017-avers",
-    "More-lyubvi-2017-reverse" : "More-lyubvi-2017-reverse",
-    "Noterdam-2010-avers" : "Noterdam-2010-avers",
-    "Noterdam-2010-reverse" : "Noterdam-2010-reverse",
-    "Panda-2013-avers" : "Panda-2013-avers",
-    "Panda-2013-reverse" : "Panda-2013-reverse",
-    "Parizh-2013-avers" : "Parizh-2013-avers",
-    "Parizh-2013-reverse" : "Parizh-2013-reverse",
-    "Pele-2008-avers" : "Pele-2008-avers",
-    "Pele-2008-reverse" : "Pele-2008-reverse",
-    "Pervyy-samolet-2011-avers" : "Pervyy-samolet-2011-avers",
-    "Pervyy-samolet-2011-reverse" : "Pervyy-samolet-2011-reverse",
-    "Polet-k-zvezdam-2012-avers" : "Polet-k-zvezdam-2012-avers",
-    "Polet-k-zvezdam-2012-reverse" : "Polet-k-zvezdam-2012-reverse",
-    "renuar-2008S-avers" : "renuar-2008S-avers",
-    "renuar-2008S-reverse" : "renuar-2008S-reverse",
-    "Russkaya-golubaya-2019-avers" : "Russkaya-golubaya-2019-avers",
-    "Russkaya-golubaya-2019-reverse" : "Russkaya-golubaya-2019-reverse",
-    "Ryby-2011-avers" : "Ryby-2011-avers",
-    "Ryby-2011-reverse" : "Ryby-2011-reverse",
-    "Snegovik-2009-avers" : "Snegovik-2009-avers",
-    "Snegovik-2009-reverse" : "Snegovik-2009-reverse",
-    "Telets-2009-avers" : "Telets-2009-avers",
-    "Telets-2009-reverse" : "Telets-2009-reverse",
-    "Tigrenok-2010-avers" : "Tigrenok-2010-avers",
-    "Tigrenok-2010-reverse" : "Tigrenok-2010-reverse",
-    "Tigrnok-2010-avers" : "Tigrnok-2010-avers",
-    "Tigrnok-2010-reverse" : "Tigrnok-2010-reverse"
-}
+catIdx = {}
+jData = {}
+categoriesCount = 80
 
-def permutate(arr, saveOrder=False, seedValue=1234):
-    idxs = [i for i in range(len(arr))]
-    if saveOrder:
-        seed(seedValue)
+def createTxtFile(img, frameData, framesDir, frame_idx):
+    category = frameData["category"]
+    ih, iw, c = img.shape
 
-    shuffle(idxs)
+    y1, x1, y2, x2 = frameData["coordinates"]
 
-    if isinstance(arr, np.ndarray):
-        arr = arr[idxs]
-    elif isinstance(arr, list):
-        arr = [arr[idx] for idx in idxs]
-    else:
-        raise TypeError
+    xc = (x2 + x1) * 0.5 / iw
+    yc = (y2 + y1) * 0.5 / ih
 
-    return arr
+    w = (x2 - x1) / iw
+    h = (y2 - y1) / ih
+
+    with open(os.path.join(framesDir, "frame_{:06d}.txt".format(frame_idx)), "w") as txtFile:
+        txtFile.write(f"{catIdx[category]['idx']} {xc} {yc} {w} {h}")
 
 
-def prepareAll(picturesFolder, idx):
-    picturesDet = []
-    picturesCls = []
+def rewriteTxtFiles(txtDir, local_frame_idx, frame_idx, framesDir):
+    if not os.path.exists(os.path.join(txtDir, "frame_{:06d}.txt".format(local_frame_idx))):
+        return False
+    txtFile = open(os.path.join(txtDir, "frame_{:06d}.txt".format(local_frame_idx)), "r")
+    dstTxtFile = open(os.path.join(framesDir, "frame_{:06d}.txt".format(frame_idx)), "a")
 
-    marks = json.load(open(os.path.join(picturesFolder, "mark.json"), "r"))
-    pictures = [os.path.join(picturesFolder, name) for name in os.listdir(picturesFolder) if name.endswith(".jpg")]
+    for line in txtFile.readlines():
+        nums  = line.split(" ")
+        if int(nums[0]) < categoriesCount:
+            dstTxtFile.write(line)
+    return True
 
-    # classifierPicturesFolder = os.path.join(picturesFolder, "cut")
-    # if os.path.exists(classifierPicturesFolder):
-        #shutil.rmtree(classifierPicturesFolder)
 
-    #os.makedirs(classifierPicturesFolder, exist_ok=True)
+def framingVideo(typeAnnotation, video, framesDir, frame_idx = 0):
 
-    detectorFiles = []
-    classifierFiles = []
+    cap = cv2.VideoCapture(video)
+    localFrame_idx = 0
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        print("\rFrame #{}".format(frame_idx), end="")
+        if typeAnnotation == Annotation.json:
+            videoName = os.path.basename(video)
+            if f"frame_{localFrame_idx}" in jData[videoName]:
+                cv2.imwrite(os.path.join(framesDir, 'frame_{:06d}.jpg'.format(frame_idx)), frame)
+                createTxtFile(frame, jData[videoName][f"frame_{localFrame_idx}"], framesDir, frame_idx)
+                localFrame_idx += 1
+                frame_idx += 1
+        elif typeAnnotation == Annotation.txt:
+            if rewriteTxtFiles(video[:-4], localFrame_idx, frame_idx, framesDir):
+                cv2.imwrite(os.path.join(framesDir, 'frame_{:06d}.jpg'.format(frame_idx)), frame)
+            localFrame_idx += 1
+            frame_idx += 1
+    return frame_idx
 
-    for i, imagePath in enumerate(pictures):
-        i += idx
-        #imageName os.path.basename(imagePath)
 
-        if not imagePath in marks or not marks[imagePath]:
+def generateFramesAndTxtFromVideos(srcPath, dstPath, typeAnnotation):
+    for group in os.listdir(srcPath):
+        if group == "original" and typeAnnotation == Annotation.txt:
             continue
 
-        categoryName = marks[imagePath]["category"]
+        targetDir = os.path.join(dstPath, group)
+        os.makedirs(targetDir, exist_ok=True)
 
-        # if categoryPrev[categoryName] == category[categoryName]:
-        #     print(f"Add to trainD.txt {imagePath}")
-        #     detectorFiles.append(imagePath)
-        #     continue
+        for video in os.listdir(os.path.join(srcPath, group)):
+            print(f"Start process file: {group}/{video}")
+            videoName, ext = os.path.splitext(video)
+            if not ext in list(Extensions.videos()):
+                continue
 
-        print(f"Create .txt for {imagePath}")
-        y1, x1, y2, x2 = marks[imagePath]["coords"]
-        categoryIdx = category[categoryName]
+            category = ""
+            videoPath = os.path.join(srcPath, group, video)
+            if typeAnnotation == Annotation.json:
+                with open(os.path.join(srcPath, group, "annotation", f"{videoName}.json"), "r") as jFile:
+                    jData[video] = json.load(jFile)
+                category, _ = videoName.rsplit('-', 1)
 
-        image = cv2.imread(imagePath, 1)
-        height, width = image.shape[:2]
-        detectorFiles.append(imagePath)
+                framesDir = os.path.join(targetDir, category, 'frames')
+                os.makedirs(framesDir, exist_ok=True)
+                frameIdx = framingVideo(typeAnnotation,
+                                        videoPath,
+                                        framesDir,
+                                        frame_idx = catIdx[category]["globalFrameIdx"]
+                                        )
+                catIdx[category]["globalFrameIdx"] = frameIdx
+            if typeAnnotation == Annotation.txt:
+                category = videoName
+                if group == "mix":
+                    dstVideoDir = os.path.join(targetDir, videoName)
+                    os.makedirs(dstVideoDir, exist_ok=True)
+                framesDir = os.path.join(dstVideoDir, 'frames')
+                os.makedirs(framesDir, exist_ok=True)
+                frameIdx = framingVideo(typeAnnotation,
+                                       videoPath,
+                                       framesDir)
 
-        y1 = max(0, y1)
-        y2 = min(height, y2)
-        x1 = max(0, x1)
-        x2 = min(width, x2)
+            if category == "":
+                continue
 
-        bbox = image[y1 + 10:y2 - 10, x1 - 10:x2 + 10, :]
-
-        yc = ((y2 + y1) // 2) / height
-        xc = ((x2 + x1) // 2) / width
-        h = (y2 - y1) / height
-        w = (x2 - x1) / width
-
-        imageString = f"{categoryIdx} {xc} {yc} {w} {h}\n"
-
-        with open(imagePath.replace(".jpg", ".txt"), "w") as file:
-            file.write(imageString)
-
-        fnameNew = categoryNames[categoryName]
-        fnameNew = fnameNew.replace("_", "-")
-        # fnameNew = imageName.split("_")[:-2]
-        # fnameNew = " ".join(fnameNew)
-        newName = f"{i}_{fnameNew}.jpg"
-
-        # if not os.path.exists(os.path.join(classifierPicturesFolder, newName)):
-        #     cv2.imwrite(os.path.join(classifierPicturesFolder, newName), bbox)
-
-        #classifierFiles.append(os.path.join(classifierPicturesFolder, newName))
-
-    picturesDet.extend(permutate([name + "\n" for name in detectorFiles]))
-    # picturesCls.extend(permutate([name + "\n" for name in classifierFiles]))
-
-    picturesDet = permutate(picturesDet)
-    # picturesCls = permutate(picturesCls)
-
-    return picturesDet, picturesCls
-
-#
-# def prepareClassifierFiles(cdir, idx):
-#     for i in range(1, 4):
-#         flist = []
-#         os.makedirs(os.path.join(cdir, "renamed"), exist_ok=True)
-#
-#         jsonPath = os.path.join(cdir, "mark.json")
-#         cdir = os.path.join(cdir, "picrures")
-#         pictures = [name for name in os.listdir(cdir) if os.path.isfile(os.path.join(cdir, name))]
-#
-#         marks = json.load(open(jsonPath, "r"))
-#
-#         for i, fname in enumerate(pictures):
-#             imageMarks = marks.pop(fname, None)
-#
-#             i += (idx + 1)
-#             fnameNew = fname.split("_")[:-1]
-#             fnameNew = "-".join(fnameNew)
-#
-#             newName = f"{i}_{fnameNew}.png"
-#
-#             newPath = os.path.join(cdir, "renamed", newName)
-#             flist.append(newPath + '\n')
-#
-#             imageMarks[newName] = imageMarks
-#
-#             if not os.path.exists(newPath):
-#                 shutil.copy2(os.path.join(cdir, fname), newPath)
-#
-#     return permutate(flist), idx + i
+            if video in jData:
+                print(f"{video} already processed\n")
+                continue
 
 
-# def createLabels(trainFile, json_):
-#     marks = json.load(open(json_, "r"))
-#
-#     with open(trainFile, "r") as file:
-#         filePaths = [path.strip() for path in file.readlines()]
-#
-#     for file in filePaths:
-#         name = os.path.basename(file)
-#
-#         imageMarks = marks.get(name, None)
-#         if imageMarks:
-#             clsName = imageMarks["name"]
-#             coords = imageMarks["coords"]
-#             clsIdx = category[clsName.replace("_", "-")]
-#
-#             image = cv2.imread(file)
-#             if image is None:
-#                 continue
+def processAnnotation(pathAnnotation):
+    typeAnnotation = os.path.basename(pathAnnotation)
+    print(f"Start process .{typeAnnotation} files of annotations to {pathAnnotation} \n")
+    generateFramesAndTxtFromVideos(pathAnnotation, Path.dataset, typeAnnotation=typeAnnotation)
+
+
+def processRawData():
+    with open(os.path.join(Path.root,  "categories.names"), "r") as f:
+        categoriesList = f.readlines()
+        idx = 0
+        for cat in categoriesList:
+            catIdx[cat[:-1]] = {
+                "idx" : idx,
+                "globalFrameIdx": 0
+            }
+            idx += 1
+
+    for folder in os.listdir(Path.raw):
+        if folder in list(Annotation.annotationExtList()):
+            if folder == "txt":
+                processAnnotation(os.path.join(Path.raw, folder))
+
 
 def main():
-    rootDir = r'C:\Projects\data\coins'
-    rootDir = r'E:\data\coins\sber'
-    frameDir = r'E:\data\coins\frames' # os.path.join(rootDir, frames)
-    videoDir = os.path.join(rootDir, 'video')
-
-    fileListD = []
-    fileListC = []
-
-    idx = 0
-
-    for cdir in os.listdir(frameDir):
-        videoPath = os.path.join(videoDir, f"{cdir}.MOV")
-        if os.path.exists(videoPath):
-            curDetList, curCategoryList = prepareAll(os.path.join(frameDir, cdir), idx)
-            idx += len(curCategoryList) + 1
-            # fileListC.extend(curCategoryList)
-            fileListD.extend(curDetList)
-
-    # C:\\Projects\\coins\\data\\coins\\frames\\imgs\
-    # frameRublesDir = r"C:\Projects\coins\data\coins\frames\imgs"
-    # for cdir in os.listdir(frameRublesDir):
-    #     curDetList, curCategoryList = prepareAll(os.path.join(frameRublesDir, cdir), idx)
-    #     idx += len(curCategoryList) + 1
-    #     fileListC.extend(curCategoryList)
-    #
-    #     fileListD.extend(curDetList)
-
-    # fileListC = permutate(fileListC)
-    fileListD = permutate(fileListD)
-
-    # with open("trainC.txt", "w") as file:
-    #     file.writelines(fileListC)
-
-    with open("trainD.txt", "w") as file:
-        file.writelines(fileListD)
+    processRawData()
 
 
 if __name__ == '__main__':

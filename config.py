@@ -75,9 +75,21 @@ class Constants:
     default = "default"
     all = "all"
 
+class Annotation:
+    txt = "txt"
+
+    json = "json"
+    xml = "xml"
+
+    @staticmethod
+    def annotationExtList():
+        extentions = [ Annotation.txt, Annotation.json, Annotation.xml ]
+        extendedExtensions = extentions + [ i.upper() for i in extentions ]
+        return tuple(extendedExtensions)
+
 
 class Path:
-    root = r"D:\projects\coins\test_data"
+    root = r"D:\Projects\coins-project\DATASETS\final_ext1"
 
     dataset = os.path.join(root, Constants.dataset)
 

@@ -302,6 +302,7 @@ def makeSets(directories, wpath=Path.sets, trainPart=0.9, validPart=0.05, ignore
         info["content"] = readLines(info["path"]) if not ignoreOld else []
         inUse.extend(info["content"])
 
+
     images = []
     marks = []
     for dirIdx, path in enumerate(directories):
@@ -415,7 +416,7 @@ def main():
         wpath=r"E:\pretty_coins\sets\pretty_set\final",
         matchWithMarks=False,
         ignoreOld=False
-             )
+     )
 
     # makeCategoriesList(Path.summarizedRaw, allowedSubCtgList=Sets.subcategories)
 
