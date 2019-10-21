@@ -1,12 +1,15 @@
 import shutil
 import os
 import json
+import random
 
 import cv2
 import numpy as np
 from config import Path, Extensions
 from random import shuffle, seed
 from Annotator import Annotation
+from augmentation import applyAugmentations
+import augmentations_kit as ak
 
 catIdx = {}
 jData = {}
@@ -25,7 +28,8 @@ def createTxtFile(img, frameData, framesDir, frame_idx):
     h = (y2 - y1) / ih
 
     with open(os.path.join(framesDir, "frame_{:06d}.txt".format(frame_idx)), "w") as txtFile:
-        txtFile.write(f"{catIdx[category]['idx']} {xc} {yc} {w} {h}")
+        if w > 0.05 or h > 0.05: # if annotation is exist
+            txtFile.write(f"{catIdx[category]['idx']} {xc} {yc} {w} {h}")
 
 
 def rewriteTxtFiles(txtDir, local_frame_idx, frame_idx, framesDir):
@@ -42,7 +46,6 @@ def rewriteTxtFiles(txtDir, local_frame_idx, frame_idx, framesDir):
 
 
 def framingVideo(typeAnnotation, video, framesDir, frame_idx = 0):
-
     cap = cv2.VideoCapture(video)
     localFrame_idx = 0
     while cap.isOpened():
@@ -65,16 +68,15 @@ def framingVideo(typeAnnotation, video, framesDir, frame_idx = 0):
     return frame_idx
 
 
-def generateFramesAndTxtFromVideos(srcPath, dstPath, typeAnnotation):
+def generateFramesAndTxtFromVideos(srcPath, dstPath, typeAnnotation, groups):
     for group in os.listdir(srcPath):
-        if group == "original" and typeAnnotation == Annotation.txt:
+        if not group in groups:
             continue
-
         targetDir = os.path.join(dstPath, group)
         os.makedirs(targetDir, exist_ok=True)
 
         for video in os.listdir(os.path.join(srcPath, group)):
-            print(f"Start process file: {group}/{video}")
+            print(f"Start process file: {group}/{video} \n")
             videoName, ext = os.path.splitext(video)
             if not ext in list(Extensions.videos()):
                 continue
@@ -96,14 +98,16 @@ def generateFramesAndTxtFromVideos(srcPath, dstPath, typeAnnotation):
                 catIdx[category]["globalFrameIdx"] = frameIdx
             if typeAnnotation == Annotation.txt:
                 category = videoName
-                if group == "mix":
+                #todo for "original" of txt format
+                if group == "mix": # skip txt/original directory
                     dstVideoDir = os.path.join(targetDir, videoName)
                     os.makedirs(dstVideoDir, exist_ok=True)
-                framesDir = os.path.join(dstVideoDir, 'frames')
-                os.makedirs(framesDir, exist_ok=True)
-                frameIdx = framingVideo(typeAnnotation,
-                                       videoPath,
-                                       framesDir)
+
+                    framesDir = os.path.join(dstVideoDir, 'frames')
+                    os.makedirs(framesDir, exist_ok=True)
+                    frameIdx = framingVideo(typeAnnotation,
+                                           videoPath,
+                                           framesDir)
 
             if category == "":
                 continue
@@ -113,31 +117,157 @@ def generateFramesAndTxtFromVideos(srcPath, dstPath, typeAnnotation):
                 continue
 
 
-def processAnnotation(pathAnnotation):
+def processAnnotation(pathAnnotation, groups):
     typeAnnotation = os.path.basename(pathAnnotation)
     print(f"Start process .{typeAnnotation} files of annotations to {pathAnnotation} \n")
-    generateFramesAndTxtFromVideos(pathAnnotation, Path.dataset, typeAnnotation=typeAnnotation)
+    generateFramesAndTxtFromVideos(pathAnnotation, Path.dataset, typeAnnotation=typeAnnotation, groups=groups)
 
 
-def processRawData():
-    with open(os.path.join(Path.root,  "categories.names"), "r") as f:
+def processRawData(groups):
+    for folder in os.listdir(Path.raw):
+        if folder in list(Annotation.annotationExtList()):
+                processAnnotation(
+                    pathAnnotation = os.path.join(Path.raw, folder),
+                    groups = groups
+                )
+
+
+def generateAugmentedData(maxCount):
+    allPath = []
+    augmentations = ak.customAugmentations
+    os.makedirs(os.path.join(Path.dataset, "augmented"), exist_ok=True)
+    for categoryName in os.listdir(Path.original):
+        print(f"Start process category: {categoryName} \n")
+        catPathList = [ name for name in os.listdir(os.path.join(Path.original, categoryName, "frames")) if name.endswith("jpg")]
+        allPath.append(catPathList)
+        cnt = len(catPathList)
+        catIdx[categoryName]["count"] = cnt
+        print(f"{categoryName} {cnt}")
+
+        augCount = 0
+        imgPath = os.path.join(Path.original, categoryName, "frames")
+        for image in os.listdir(imgPath):
+            if image.endswith("txt"):
+                continue
+            if maxCount - cnt <= augCount:
+                break
+            print("\rMax_count: {} augCount: {} | Augmentation image #{} processed".format(maxCount, maxCount - cnt, augCount), end="")
+            augCount += 1
+
+            frame = cv2.imread(os.path.join(imgPath, image), cv2.IMREAD_COLOR)
+            ih, iw, _ = frame.shape
+
+            txtName = f"{image[:-4]}.txt"
+            txtFile = open(os.path.join(imgPath, txtName), "r")
+
+            line = txtFile.readline()
+            outAugData = ""
+            img = frame
+            if line != "":
+                idx, xc, yc, w, h = tuple([ float(x) for x in line.split(" ")])
+                x1 = (xc - w*0.5) * iw
+                y1 = (yc - h*0.5) * ih
+                x2 = (xc + w*0.5) * iw
+                y2 = (yc + h*0.5) * ih
+                bbox = [ y1, x1, y2, x2 ]
+
+                img, bbox = applyAugmentations(frame, bbox, augmentations)
+
+                ih, iw, _ = img.shape
+
+                pb = bbox
+                xc = (pb[1] + pb[3]) * 0.5 / iw
+                yc = (pb[0] + pb[2]) * 0.5 / ih
+                w = (pb[3] - pb[1]) / iw
+                h = (pb[2] - pb[0]) / ih
+
+                if w > 0.05 and h > 0.05:
+                    outAugData = f"{int(idx)} {xc} {yc} {w} {h}"
+
+            dstPath = os.path.join(Path.dataset, "augmented", categoryName, "frames")
+            os.makedirs(os.path.join(dstPath), exist_ok=True)
+
+            augTxtFile = open(os.path.join(dstPath, txtName), "w")
+            augTxtFile.writelines(outAugData)
+            cv2.imwrite(os.path.join(dstPath, image), img)
+
+
+def extraSets(groups, cfgPath):
+    data = []
+    for group in [ os.path.join(Path.dataset, g) for g in groups ]:
+        for category in os.listdir(group):
+            path = os.path.join(group, category)
+            if group != os.path.join(Path.dataset, "negatives"):
+                path = os.path.join(path, "frames")
+
+            for imgFile in os.listdir(path):
+                if imgFile.endswith("jpg"):
+                    data.append(os.path.join(path, imgFile))
+                    print(f"{os.path.join(path, imgFile)}")
+    random.shuffle(data)
+
+    ftrain = open(os.path.join(cfgPath, "train.txt"), "a")
+    ftest = open(os.path.join(cfgPath, "test.txt"), "a")
+
+    for idx, path in enumerate(data):
+        if idx <= 0.9 * len(data):
+            ftrain.write(f"{path}\n")
+        if idx > 0.9 * len(data):
+            ftest.write(f"{path}\n")
+
+    ftrain.close()
+    ftest.close()
+
+
+def actualizeCategories(path):
+    with open(path, "r") as f:
         categoriesList = f.readlines()
         idx = 0
         for cat in categoriesList:
             catIdx[cat[:-1]] = {
                 "idx" : idx,
-                "globalFrameIdx": 0
+                "globalFrameIdx": 0,
+                "count": 0
             }
             idx += 1
+        categoriesCount = idx + 1
 
-    for folder in os.listdir(Path.raw):
-        if folder in list(Annotation.annotationExtList()):
-            if folder == "txt":
-                processAnnotation(os.path.join(Path.raw, folder))
+
+def clearAnnotation(path):
+    for category in os.listdir(path):
+        print("Start process {} \n".format(category))
+        for file in os.listdir(os.path.join(path, category, "frames")):
+            if file.endswith("txt"):
+                print("\rFile {} in process \n".format(file), end="")
+                txtFile = open(os.path.join(path, category, "frames", file), "r")
+                line = txtFile.readline()
+                if line == "":
+                    continue
+                idx, xc, yc, w, h = tuple([ float(x) for x in line.split(" ")])
+                txtFile.close()
+
+                if w < 0.05 or h < 0.05 or xc > 1 or yc > 1:
+                    txtFile = open(os.path.join(path, category, "frames", file), "w")
+                    txtFile.write("")
 
 
 def main():
-    processRawData()
+    # clearAnnotation(r"D:\Projects\coins-project\DATASETS\final_ext1\dataset\original")
+    actualizeCategories(
+        path = os.path.join(Path.root,  "categories.names")
+    )
+
+    processRawData(
+        groups = ["original"]
+    ) # framing video, process *.json and *.txt annotation
+    generateAugmentedData(
+        maxCount=5000
+    )
+
+    extraSets(
+        groups = ["original", "augmented", "mix", "negatives"],
+        cfgPath=r"C:\Projects\darknet_win\my_configs\80_coins_21_10_2019"
+    )
 
 
 if __name__ == '__main__':

@@ -1,40 +1,38 @@
-import re
+import os
+
 import json
 
-import augmentations_kit as ak
-
-from xml2json import xml2jsonFromFolder
-from verifier import crossMatchVideoAndMarks, actualizeInfoWithJsons, actualizeInfoWithFrames
+from annotation_converter import xml2jsonFromFolder
+from verifier import actualizeInfoWithFrames
 from framing import processVideoFolder
-from augmentation import augmentDatasetWithGenerator
-from darknet_preparation import cleanOldMarks, extractMarksThroughDataset, makeSets
-from config import Path, Extensions, Constants as const
+from darknet_preparation import makeSets
+from config import Path, Extensions as const
 
 
 def test():
-    # try:
-    #     actualizeInfoWithFrames(Path.dataset)
-    # except:
-    #     pass
+    try:
+        actualizeInfoWithFrames(Path.dataset)
+    except:
+        pass
 
-    xml2jsonFromFolder(
-        rpath=Path.rawXml,
-        wpath=Path.rawJson
-    )
+    # xml2jsonFromFolder(
+    #     rpath=Path.rawXml,
+    #     wpath=Path.rawJson
+    # )
 
     # crossMatchVideoAndMarks(
     #     marks=Path.rawJson,
     #     videos=Path.rawVideos
     # )
 
-    # processVideoFolder(
-    #     folderPath=Path.rawVideos,
-    #     marksPath=Path.rawJson,
-    #     datasetPath=Path.dataset,
-    #     overwrite=False
-    # )
+    processVideoFolder(
+        folderPath=Path.rawVideos,
+        marksPath=Path.rawJson,
+        datasetPath=Path.dataset,
+        overwrite=False
+    )
 
-    # actualizeInfoWithFrames(Path.dataset)
+    actualizeInfoWithFrames(Path.dataset)
 
     # augmentations = ak.cartoonAugs
     #
@@ -111,7 +109,8 @@ def main():
     #     wpath=Path.rawJson
     # )
     #
-    # crossMatchVideoAndMarks(
+    # crossMatchVideoAnd
+    # Marks(
     #     marks=Path.rawJson,
     #     videos=Path.rawVideos
     # )
@@ -218,6 +217,52 @@ def smartTest():
         overwriteAugmented=False
     )
 
+categories = dict()
+renamedFiles = []
+def prettifyVideoNames(path):
+    with open(os.path.join(path, "correct_names.txt"), "r") as fin:
+        names = fin.readlines()
+        for name in names:
+            oldName, newName = tuple(name.split())
+            oldName = oldName.rsplit('_', 1)
+            print(f"{oldName} {newName}")
+            categories[oldName[0]] = newName
+
+    for videoFile in os.listdir(path):
+        if not videoFile.endswith("MOV"):
+            continue
+        videoFile, ext = os.path.splitext(videoFile)
+        videoFile, versionFile = tuple(videoFile.rsplit('-', 1))
+        if not videoFile in categories and not videoFile in renamedFiles:
+            os.remove(os.path.join(path, f"{videoFile}-{versionFile}.MOV"))
+            os.remove(os.path.join(path, "annotation", f"{videoFile}-{versionFile}.json"))
+            continue
+        renamedFiles.append(categories[videoFile])
+        os.rename(os.path.join(path, f"{videoFile}-{versionFile}.MOV"), os.path.join(path, f"{categories[videoFile]}-{versionFile}.MOV"))
+        os.rename(os.path.join(path, 'annotation', f"{videoFile}-{versionFile}.json"), os.path.join(path, 'annotation', f"{categories[videoFile]}-{versionFile}.json"))
+
+
+
+def updateCategory(path):
+    import json
+
+    for filename in os.listdir(path):
+        res = {}
+        with open(os.path.join(path, filename), "r") as jsonFile:
+            jdata = json.load(jsonFile)
+            catName, _ = filename.rsplit('-', 1)
+            for frame in jdata:
+                res[frame] = {
+                    "category": catName,
+                    "coordinates": jdata[frame]["coordinates"]
+                }
+            jsonFile.close()
+
+        with open(os.path.join(path, filename), "w") as jsonFile:
+            json.dump(res, jsonFile, indent=4)
+
 
 if __name__ == "__main__":
-    smartTest()
+    updateCategory(r"D:\Projects\coins-project\DATASETS\final_ext1\raw_data\json\original\annotation")
+    #prettifyVideoNames(r"D:\Projects\coins-project\DATASETS\final_ext1\raw_data\json\original")
+    # test()
