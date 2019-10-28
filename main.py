@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from config import Path, Extensions
 from random import shuffle, seed
-from Annotator import Annotation
+from annotator import Annotation
 from augmentation import applyAugmentations
 import augmentations_kit as ak
 

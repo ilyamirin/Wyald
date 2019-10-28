@@ -114,7 +114,7 @@ def fixFrameNumbers(jsonPath):
         print(f"{Fore.BLUE}JSON file {path} has been fixed{Style.RESET_ALL}")
 
 
-def updateCategoriesIndicies(datasetPath, categories):
+def updateCategoriesIndices(datasetPath, categories):
     from utils import walk, makeJSONname
     from verifier import getFullCategory
 
@@ -143,25 +143,9 @@ def updateCategoriesIndicies(datasetPath, categories):
 
 
 def main():
-    from config import Sets
     from utils import readLines
-    from verifier import splitFullCategory
-    from darknet_preparation import makeCategoriesList
-
-    # fixFrameNumbers(Path.rawJson)
-    #
-    # fullCtgs = readLines(r"E:\pretty_coins\final_categories.names")
-    # categories = set([splitFullCategory(ctg)[0] for ctg in fullCtgs])
-    #
-    # summarizeInfo(
-    #     allowedSubCtgList=(const.avers,),
-    #     allowedCategories=categories
-    # )
-    #
-    # makeCategoriesList(Path.summarizedRaw)
-    #
     categories = readLines(Path.categories)
-    updateCategoriesIndicies(Path.dataset, categories)
+    updateCategoriesIndices(Path.dataset, categories)
 
 
 if __name__ == "__main__":
