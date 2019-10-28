@@ -1,9 +1,9 @@
 import random
 from imgaug import augmenters as iaa
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
+import cv2
 
 from verifier import fitCoords
-from filters import cartoonizeImage
 
 
 aug = iaa.Sequential(
@@ -32,6 +32,19 @@ def customAugmentations(image, box):
 
     return augImage, augBox
 
+
+def cartoonizeImage(image):
+    blured = cv2.bilateralFilter(image.copy(), 1, 75, 75)
+
+    hls = cv2.cvtColor(blured, cv2.COLOR_BGR2HLS_FULL)
+    h, l, s = cv2.split(hls)
+
+    yuv = cv2.cvtColor(blured, cv2.COLOR_BGR2YUV)
+    y, u, v = cv2.split(yuv)
+
+    y = cv2.adaptiveThreshold(y, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.ADAPTIVE_THRESH_MEAN_C, 3, 1)
+
+    return cv2.merge((y, l, s))
 
 def cartoonAugs(image, box):
     image = cartoonizeImage(image)

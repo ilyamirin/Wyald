@@ -15,7 +15,6 @@ from verifier import downloadActualInfo, getFullCategory, splitFullCategory, fit
 from utils import extendName, makeJSONname, walk, getNested, openJsonSafely
 from config import Extensions, Path, Constants as const
 from augmentations_kit import customAugmentations
-from filters import cartoonizeImage
 
 def makeBoxesPretty(augBoxes):
     prettyBbs = []
