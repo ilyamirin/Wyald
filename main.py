@@ -71,12 +71,13 @@ def framingVideo(typeAnnotation, video, framesDir, frame_idx = 0):
 def generateFramesAndTxtFromVideos(srcPath, dstPath, typeAnnotation, groups):
     for group in os.listdir(srcPath):
         if not group in groups:
+            print(f"The group {group} was skip in path {srcPath, group}\n")
             continue
         targetDir = os.path.join(dstPath, group)
         os.makedirs(targetDir, exist_ok=True)
 
         for video in os.listdir(os.path.join(srcPath, group)):
-            print(f"Start process file: {group}/{video} \n")
+            print(f"\n Start process file: {group}/{video} \n")
             videoName, ext = os.path.splitext(video)
             if not ext in list(Extensions.videos()):
                 continue
@@ -84,37 +85,33 @@ def generateFramesAndTxtFromVideos(srcPath, dstPath, typeAnnotation, groups):
             category = ""
             videoPath = os.path.join(srcPath, group, video)
             if typeAnnotation == Annotation.json:
-                with open(os.path.join(srcPath, group, "annotation", f"{videoName}.json"), "r") as jFile:
-                    jData[video] = json.load(jFile)
-                category, _ = videoName.rsplit('-', 1)
-
-                framesDir = os.path.join(targetDir, category, 'frames')
-                os.makedirs(framesDir, exist_ok=True)
-                frameIdx = framingVideo(typeAnnotation,
-                                        videoPath,
-                                        framesDir,
-                                        frame_idx = catIdx[category]["globalFrameIdx"]
-                                        )
-                catIdx[category]["globalFrameIdx"] = frameIdx
+                if group == "original":
+                    with open(os.path.join(srcPath, group, "annotation", f"{videoName}.json"), "r") as f:
+                        jData[video] = json.load(f)
+                    category, _ = videoName.rsplit('-', 1)
             if typeAnnotation == Annotation.txt:
-                category = videoName
-                #todo for "original" of txt format
-                if group == "mix": # skip txt/original directory
-                    dstVideoDir = os.path.join(targetDir, videoName)
-                    os.makedirs(dstVideoDir, exist_ok=True)
+                if group == "mix" or group == "sets":
+                    category = videoName
+                if group == "original":
+                    t = videoName.split("-")
+                    category = t[0]
 
-                    framesDir = os.path.join(dstVideoDir, 'frames')
-                    os.makedirs(framesDir, exist_ok=True)
-                    frameIdx = framingVideo(typeAnnotation,
-                                           videoPath,
-                                           framesDir)
+            globalFrameIdx = 0
+            if category in catIdx:
+                globalFrameIdx = catIdx[category]["globalFrameIdx"]
 
             if category == "":
+                print(f"Unknowed group {category} or type.Annotation {typeAnnotation} \n")
                 continue
 
-            if video in jData:
-                print(f"{video} already processed\n")
+            framesDir = os.path.join(targetDir, category, 'frames')
+            os.makedirs(framesDir, exist_ok=True)
                 continue
+
+            frameIdx = framingVideo(typeAnnotation, videoPath, framesDir,
+                                    frame_idx=globalFrameIdx)
+            if group == "original":
+                catIdx[category]["globalFrameIdx"] = frameIdx
 
 
 def processAnnotation(pathAnnotation, groups):
@@ -123,8 +120,10 @@ def processAnnotation(pathAnnotation, groups):
     generateFramesAndTxtFromVideos(pathAnnotation, Path.dataset, typeAnnotation=typeAnnotation, groups=groups)
 
 
-def processRawData(groups):
+def processRawData(annListToProcess, groups):
     for folder in os.listdir(Path.raw):
+        if not folder in annListToProcess:
+            continue
         if folder in list(Annotation.annotationExtList()):
                 processAnnotation(
                     pathAnnotation = os.path.join(Path.raw, folder),
@@ -332,7 +331,9 @@ def main():
     )
 
     processRawData(
-        groups = ["original"]
+        annListToProcess=[ #Annotation.json,
+                           Annotation.txt ],
+        groups=["original", "sets"]
     ) # framing video, process *.json and *.txt annotation
     generateAugmentedData(
         maxCount=5000
