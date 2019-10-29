@@ -251,6 +251,80 @@ def clearAnnotation(path):
                     txtFile.write("")
 
 
+def updateAnnotation(folder, newIdx):
+    path = os.path.join(Path.raw, 'txt', 'original', folder)
+    for txtFile in os.listdir(path):
+        print("\r Start process {}".format(txtFile), end="")
+
+        if txtFile.endswith('txt'):
+            ftxt = open (os.path.join(path, txtFile), "r")
+            res = []
+            lines = list(ftxt)
+            for line in lines:
+                ctg, xc, yc, w, h = tuple(line.split(" "))
+                if int(ctg) in newIdx:
+                    ctg = newIdx[int(ctg)]
+
+                res.append(f"{ctg} {xc} {yc} {w} {h}")
+
+            ftxt.close()
+            with open(os.path.join(path, txtFile), "w") as f:
+                f.writelines(res)
+
+
+def updateRawDataCategoriesAndIndices():
+    rctg = dict()
+
+    fctg = open(os.path.join(Path.root, "new_ctg.txt"), "r")
+    ctgList = list(fctg)
+    updatedCategoriesList = list()
+
+    nidx = 0
+    for idx, ctg in enumerate(ctgList):
+        if ctg[0] == '#':
+            print(f"Skip category {ctg} for process in original folder \n")
+            sym, new_ctg = ctg.split(" ")
+            ctg = new_ctg
+        elif ctg[0] == '!':
+            continue
+            sym, old_ctg, new_ctg = ctg.split(" ")
+            print(f"Start process folder {old_ctg}. Assign new category: {new_ctg} \n")
+            if old_ctg.find("On_Guard_of_the_Fatherland_18_1") != -1:
+                updateAnnotation(old_ctg[:-2], { idx: rctg[new_ctg]["new_idx"] })  # old ctg idx == 135 -> 111, 136 -> 112
+            continue
+
+        ctg = ctg.split("\n")[0]
+        if ctg == "Sergius_of_Radonezh_18":
+            updateAnnotation(ctg, { 106 : 52 })
+        elif ctg == "Seraphim_of_Sarov_18":
+            updateAnnotation(ctg, { 106: 51 })
+        elif ctg == "Panteleimon":
+            updateAnnotation(ctg, { 106: 107 })
+
+        # if idx >= 141:
+        #     #ctgFullName = ctg.split("_")
+        #     if ctg == "Well_wait_11_1":
+        #         updateAnnotation("Well_wait_11", {idx: nidx})
+        #     elif ctg == "Peter_I_The_Great_17":
+        #         updateAnnotation(ctg, { idx : nidx })
+        #         updateAnnotation(f"{ctg}-1", {idx: nidx})
+        #         updateAnnotation(f"{ctg}-2", {idx: nidx})
+        #     else:
+        #         updateAnnotation(ctg, { idx : nidx })
+
+        # rctg[ctg] = {
+        #     "new_idx": nidx
+        # }
+
+        print(f"{nidx} {ctg}")
+        updatedCategoriesList.append(f"{ctg}\n")
+        nidx += 1
+
+
+    with open(os.path.join(Path.root, "categories.txt"), "w") as f:
+        f.writelines(updatedCategoriesList)
+
+
 def main():
     # clearAnnotation(r"D:\Projects\coins-project\DATASETS\final_ext1\dataset\original")
     actualizeCategories(
